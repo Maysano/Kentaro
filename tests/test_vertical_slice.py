@@ -64,7 +64,8 @@ class VerticalSliceTests(unittest.TestCase):
         fragment = render_dashboard(context, inline=True)
         self.assertNotIn("<!doctype", fragment.lower())
         self.assertNotIn("<html", fragment.lower())
-        self.assertNotIn("<style", fragment.lower())
+        self.assertIn('<style>', fragment)
+        self.assertIn('kd-metrics', fragment)
         for record in context["records"]:
             self.assertIn(record["source_ref"], fragment)
         self.assertIn(context["retrieved_at"], fragment)

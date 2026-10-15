@@ -43,19 +43,46 @@ def render_dashboard(context, *, inline=False):
         cards = "".join(f'<div class="card viz-stat"><span>{label}</span>'
                         f'<div class="viz-stat-value tabular-nums">{value}</div></div>'
                         for label, value in metrics)
-        sections = ''.join(groups).replace('<table>', '<table class="table table-sm">')
+        sections = ''.join(groups).replace('<section>', '<section class="kd-section">')
+        sections = sections.replace('<h2>', '<h3>').replace('</h2>', '</h3>')
+        sections = sections.replace('<table>', '<div class="table-responsive"><table class="table table-sm">')
+        sections = sections.replace('</table>', '</table></div>')
         sections = sections.replace('<summary>', '<summary class="cursor-interaction">')
-        return f"""<div id="kentaro-portfolio-dashboard">
-<header><h2>Portfolio status</h2><p>Synthetic demo · <code>{esc(context['scope'])}</code></p>
-<p class="text-small">Retrieved {esc(context['retrieved_at'])} · UTC</p></header>
-<div class="viz-grid" aria-label="Calculated record counts">{cards}</div>
-<p><strong>Ownership gap:</strong> {gaps}</p>
-<p><strong>Delivery health:</strong> Unknown — readiness criteria and milestone data unavailable.</p>
+        return f"""<div id="kentaro-portfolio-dashboard" aria-labelledby="kd-title">
+<style>
+#kentaro-portfolio-dashboard {{ color: var(--foreground); }}
+#kentaro-portfolio-dashboard .kd-header {{ display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }}
+#kentaro-portfolio-dashboard .kd-kicker {{ margin: 0 0 6px; color: var(--muted-foreground); font-size: var(--font-size-base); }}
+#kentaro-portfolio-dashboard h2 {{ margin: 0; }}
+#kentaro-portfolio-dashboard .kd-meta {{ margin: 8px 0 0; color: var(--muted-foreground); }}
+#kentaro-portfolio-dashboard .kd-scope {{ margin: 0; padding-top: 4px; white-space: nowrap; color: var(--muted-foreground); }}
+#kentaro-portfolio-dashboard .kd-metrics {{ display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }}
+#kentaro-portfolio-dashboard .kd-findings {{ display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 16px 0 24px; }}
+#kentaro-portfolio-dashboard .kd-finding {{ padding: 14px; }}
+#kentaro-portfolio-dashboard .kd-finding p {{ margin: 0; }}
+#kentaro-portfolio-dashboard .kd-finding p + p {{ margin-top: 6px; }}
+#kentaro-portfolio-dashboard .kd-label {{ color: var(--muted-foreground); }}
+#kentaro-portfolio-dashboard .kd-section {{ margin-top: 28px; }}
+#kentaro-portfolio-dashboard .kd-section h3 {{ margin: 0 0 10px; }}
+#kentaro-portfolio-dashboard details p {{ margin: 8px 0; }}
+#kentaro-portfolio-dashboard details ul {{ margin: 8px 0 0; padding-left: 20px; }}
+#kentaro-portfolio-dashboard footer {{ margin-top: 28px; }}
+#kentaro-portfolio-dashboard footer p {{ margin: 10px 0; }}
+@media (max-width: 620px) {{
+  #kentaro-portfolio-dashboard .kd-header {{ display: block; }}
+  #kentaro-portfolio-dashboard .kd-scope {{ margin-top: 10px; }}
+  #kentaro-portfolio-dashboard .kd-metrics, #kentaro-portfolio-dashboard .kd-findings {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+}}
+</style>
+<header class="kd-header"><div><p class="kd-kicker">KENTARO · READ-ONLY PORTFOLIO</p><h2 id="kd-title">Portfolio status</h2>
+<p class="kd-meta">Synthetic demo · Retrieved {esc(context['retrieved_at'])} UTC</p></div>
+<p class="kd-scope">Scope <code>{esc(context['scope'])}</code></p></header>
+<div class="kd-metrics" aria-label="Calculated record counts">{cards}</div>
+<aside class="kd-findings" aria-label="Portfolio attention items"><div class="card kd-finding"><p class="kd-label">Ownership gap</p><p><strong>{gaps}</strong></p></div>
+<div class="card kd-finding"><p class="kd-label">Delivery health</p><p><strong>Unknown</strong> — readiness criteria and milestone data unavailable.</p></div></aside>
 {sections}
-<footer><hr><p class="text-small">Snapshot · Cache disabled · Model execution disabled.
-Expand records for versions, update timestamps and source references.
-Retrieval time is fixture load time, not platform freshness.</p>
-<details><summary class="cursor-interaction">Limitations</summary><ul>{limitations}</ul>
+<footer><hr><p class="text-small">Snapshot · Cache disabled · Model execution disabled. Retrieval time is fixture load time, not platform freshness.</p>
+<details><summary class="cursor-interaction">Limitations and evidence boundary</summary><ul>{limitations}</ul>
 <p>Recorded states and evidence presence do not establish delivery readiness.</p></details></footer>
 </div>"""
     return f"""<!doctype html>
