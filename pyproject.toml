@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kentaro"
+version = "0.1.0.dev0"
+description = "Read-only Maysano portfolio context for agent workspaces"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = []
+
+[project.scripts]
+kentaro = "kentaro.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["kentaro*"]

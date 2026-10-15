@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "synthetic": true,
+  "records": [
+    {
+      "id": "obj-1",
+      "kind": "objective",
+      "title": "Reduce order fulfilment delays",
+      "owner": "Operations",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:obj-1"
+    },
+    {
+      "id": "uc-1",
+      "kind": "use_case",
+      "title": "Predict late shipments",
+      "owner": "Delivery lead",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:uc-1"
+    },
+    {
+      "id": "uc-2",
+      "kind": "use_case",
+      "title": "Explain warehouse bottlenecks",
+      "owner": null,
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:uc-2"
+    },
+    {
+      "id": "dp-1",
+      "kind": "data_product",
+      "title": "Order events",
+      "owner": "Order team",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:dp-1"
+    },
+    {
+      "id": "dp-2",
+      "kind": "data_product",
+      "title": "Shipment tracking",
+      "owner": "Logistics",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:dp-2"
+    },
+    {
+      "id": "dp-3",
+      "kind": "data_product",
+      "title": "Warehouse capacity",
+      "owner": "Warehouse team",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:dp-3"
+    },
+    {
+      "id": "dec-1",
+      "kind": "decision",
+      "title": "Choose shipment freshness target",
+      "owner": "Delivery lead",
+      "state": "open",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:dec-1"
+    },
+    {
+      "id": "risk-1",
+      "kind": "risk",
+      "title": "Warehouse events lack complete timestamps",
+      "owner": "Warehouse team",
+      "state": "open",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:risk-1"
+    },
+    {
+      "id": "ev-1",
+      "kind": "evidence",
+      "title": "Synthetic shipment profiling results",
+      "owner": "Logistics",
+      "state": "active",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "scope": "portfolio-demo",
+      "source_ref": "demo:ev-1"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel-1",
+      "source": "obj-1",
+      "target": "uc-1",
+      "type": "supported_by",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-1"
+    },
+    {
+      "id": "rel-2",
+      "source": "obj-1",
+      "target": "uc-2",
+      "type": "supported_by",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-2"
+    },
+    {
+      "id": "rel-3",
+      "source": "uc-1",
+      "target": "dp-1",
+      "type": "uses",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-3"
+    },
+    {
+      "id": "rel-4",
+      "source": "uc-1",
+      "target": "dp-2",
+      "type": "uses",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-4"
+    },
+    {
+      "id": "rel-5",
+      "source": "uc-2",
+      "target": "dp-3",
+      "type": "uses",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-5"
+    },
+    {
+      "id": "rel-6",
+      "source": "uc-1",
+      "target": "dec-1",
+      "type": "has_decision",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-6"
+    },
+    {
+      "id": "rel-7",
+      "source": "uc-2",
+      "target": "risk-1",
+      "type": "has_risk",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-7"
+    },
+    {
+      "id": "rel-8",
+      "source": "dp-2",
+      "target": "ev-1",
+      "type": "has_evidence",
+      "scope": "portfolio-demo",
+      "version": 1,
+      "updated_at": "2026-10-15T08:00:00Z",
+      "source_ref": "demo:rel-8"
+    }
+  ]
+}

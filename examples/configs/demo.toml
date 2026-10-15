@@ -1,0 +1,17 @@
+schema_version = 1
+profile = "demo"
+read_only = true
+scope = "portfolio-demo"
+fixture = "../demo-portfolio/portfolio.json"
+
+[cache]
+enabled = false
+ttl_seconds = 300
+classification = "public-synthetic"
+
+[model]
+mode = "local"
+enabled = false
+permitted_providers = []
+cloud_task_classes = []
+no_send_classifications = ["confidential", "restricted"]

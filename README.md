@@ -8,7 +8,23 @@ It gives coding agents the business context, structured artefacts, working rules
 
 Kentaro sits on top of Maysano Platform. It does not replace the platform.
 
-## What Kentaro provides
+## Start the demo
+
+The first implementation is a read-only, synthetic portfolio briefing. Python 3.11+ is required.
+From the repository root:
+
+```powershell
+python -m kentaro --config examples/configs/demo.toml validate-config
+python -m kentaro --config examples/configs/demo.toml portfolio brief
+python -m unittest discover -s tests -v
+```
+
+Install the CLI with `python -m pip install -e .`, then use `kentaro` in place of `python -m kentaro`.
+No customer credentials, live API, cache, SDK model calls or dashboard are implemented yet.
+See [implementation status](docs/roadmap.md), [API capability matrix](docs/api-contract.md),
+[configuration](docs/configuration.md) and [data boundaries](docs/security-and-data-boundaries.md).
+
+## Planned capabilities
 
 - Workspace adapters for Codex, Claude Code, and OpenCode
 - Repository structure for objectives, use cases, data products, decisions, evidence, and implementation packages
@@ -82,7 +98,7 @@ The open-source release includes the Harness source, workspace adapters, reposit
 
 Maysano Platform is a separate product. Its shared context graph, GUI, workflow state, approval services, audit model, APIs, jobs, and shared agent services are not included in this repository unless a component is explicitly released under the MIT License.
 
-The Open Data Products SDK is an independent component with its own published license and release process.
+The SDK is [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk), published as `open-data-products` with the Python namespace `open_data_products`. It is an independent Apache-2.0 component with its own release process. See [SDK integration notes](docs/sdk-integration.md).
 
 ## Why Kentaro
 
