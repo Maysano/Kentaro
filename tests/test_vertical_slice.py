@@ -45,6 +45,30 @@ class VerticalSliceTests(unittest.TestCase):
                      "## Recommendations", "uc-2", "owner: unknown", "not live Maysano"):
             self.assertIn(text, report)
 
+    def test_dashboard_preserves_sources_and_escapes_content(self):
+        from kentaro.dashboard.render import render_dashboard
+        context = self.client.read_portfolio()
+        context["records"][0]["title"] = '<script>alert("bad")</script>'
+        dashboard = render_dashboard(context)
+        self.assertNotIn('<script>', dashboard)
+        self.assertIn('&lt;script&gt;', dashboard)
+        self.assertIn('Delivery health:', dashboard)
+        for record in context["records"] + context["relationships"]:
+            self.assertIn(record["id"], dashboard)
+            self.assertIn(record["source_ref"], dashboard)
+            self.assertIn(record["updated_at"], dashboard)
+
+    def test_inline_dashboard_is_fragment_with_sources(self):
+        from kentaro.dashboard.render import render_dashboard
+        context = self.client.read_portfolio()
+        fragment = render_dashboard(context, inline=True)
+        self.assertNotIn("<!doctype", fragment.lower())
+        self.assertNotIn("<html", fragment.lower())
+        self.assertNotIn("<style", fragment.lower())
+        for record in context["records"]:
+            self.assertIn(record["source_ref"], fragment)
+        self.assertIn(context["retrieved_at"], fragment)
+
     def test_unsafe_config_rejected(self):
         text = CONFIG.read_text()
         for before, after in [('read_only = true', 'read_only = false'),

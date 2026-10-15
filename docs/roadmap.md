@@ -7,7 +7,9 @@ M0 remains open: platform owners must confirm real API capabilities, reference e
 authentication and customer classification/retention policy. The SDK repository is confirmed as
 [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk); adapter API and version selection remain pending.
 M1 live connectivity is not complete. Next: approved read transport and secret-store integration,
-then cache, context analysis, remaining workflows, SDK integration and dashboard.
+then cache, context analysis, remaining workflows and SDK integration.
+A static dashboard and conversational dashboard skill are implemented; saved manager views,
+automatic refresh and live dashboard integration remain pending.
 
 Demo acceptance: one objective, two use cases and three products appear with relationships,
 a decision, a risk and evidence; uc-2 has unknown ownership. Every source has an ID, version,

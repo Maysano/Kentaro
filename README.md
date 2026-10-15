@@ -8,6 +8,26 @@ It gives coding agents the business context, structured artefacts, working rules
 
 Kentaro sits on top of Maysano Platform. It does not replace the platform.
 
+## Use Kentaro in Codex
+
+Ask **"Give me a demo portfolio briefing"** or **"Which demo portfolio records have missing owners?"**
+Codex can retrieve the fixture through Kentaro and explain the sourced results in chat.
+The repository skill is `.agents/skills/kentaro-portfolio-brief/SKILL.md` and can also be
+explicitly requested as `$kentaro-portfolio-brief` once discovered by Codex.
+If the new skill is not listed in an existing session, start a new chat in this repository;
+the root `AGENTS.md` also points to the workflow for conversational requests.
+The current workflow uses synthetic data; live Maysano retrieval remains pending.
+
+Ask **"Show me the demo portfolio dashboard"** to display a rendered status snapshot in the conversation with
+expandable source details. The dashboard skill lives at
+`.agents/skills/kentaro-portfolio-dashboard/SKILL.md`. To generate it manually:
+
+```powershell
+python -m kentaro --config examples/configs/demo.toml dashboard --output reports/portfolio-dashboard.html
+```
+
+Choose a new output filename each time; existing files are never overwritten.
+
 ## Start the demo
 
 The first implementation is a read-only, synthetic portfolio briefing. Python 3.11+ is required.
@@ -20,7 +40,8 @@ python -m unittest discover -s tests -v
 ```
 
 Install the CLI with `python -m pip install -e .`, then use `kentaro` in place of `python -m kentaro`.
-No customer credentials, live API, cache, SDK model calls or dashboard are implemented yet.
+No customer credentials, live API, cache or SDK model calls are implemented yet.
+The dashboard is a static synthetic snapshot, with no automatic refresh or saved-view configuration.
 See [implementation status](docs/roadmap.md), [API capability matrix](docs/api-contract.md),
 [configuration](docs/configuration.md) and [data boundaries](docs/security-and-data-boundaries.md).
 
