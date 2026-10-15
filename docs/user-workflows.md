@@ -11,12 +11,15 @@ From the repository root run the brief command in docs/configuration.md. Check t
 has missing ownership, inspect its source in examples/demo-portfolio/portfolio.json, and
 compare the recommendation with the source facts. Counts derive only from listed scoped records.
 
-To save a reviewable output in PowerShell:
+To save a reviewable local output in PowerShell:
 
 ```powershell
-New-Item -ItemType Directory -Force reports
-python -m kentaro --config examples/configs/demo.toml portfolio brief | Out-File -Encoding utf8 reports/demo-brief.md
+New-Item -ItemType Directory -Force .kentaro/workspace/reports
+python -m kentaro --config examples/configs/demo.toml portfolio brief | Out-File -Encoding utf8 .kentaro/workspace/reports/demo-brief.md
 ```
+
+`.kentaro/workspace/` is the local user workspace. It is ignored by Git and its
+contents must not be staged, committed, or pushed.
 
 Ask "Show me the demo portfolio dashboard" to display a rendered read-only snapshot directly in the conversation.
 Expand record titles to inspect versions, timestamps, references and relationships.

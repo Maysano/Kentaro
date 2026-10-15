@@ -18,15 +18,43 @@ If the new skill is not listed in an existing session, start a new chat in this 
 the root `AGENTS.md` also points to the workflow for conversational requests.
 The current workflow uses synthetic data; live Maysano retrieval remains pending.
 
+Ask **"List the demo data products"** to retrieve a compact, sourced inventory of data
+products, their owners, recorded states, linked use cases, and provenance. The workflow is
+defined in `.agents/skills/kentaro-list-data-products/SKILL.md` and uses the same synthetic
+demo limitation.
+
+Ask **"List the demo use cases"** to retrieve a compact, sourced inventory of use cases,
+their owners, recorded states, supporting objectives, linked data products, and provenance.
+The workflow is defined in `.agents/skills/kentaro-list-use-cases/SKILL.md` and uses the same
+synthetic demo limitation.
+
+Ask **"List the demo business objectives"** to retrieve a compact, sourced inventory of
+objectives, their owners, recorded states, supported use cases, and provenance. The workflow is
+defined in `.agents/skills/kentaro-list-objectives/SKILL.md` and uses the same synthetic demo
+limitation.
+
 Ask **"Show me the demo portfolio dashboard"** to display a rendered status snapshot in the conversation with
 expandable source details. The dashboard skill lives at
 `.agents/skills/kentaro-portfolio-dashboard/SKILL.md`. To generate it manually:
 
 ```powershell
-python -m kentaro --config examples/configs/demo.toml dashboard --output reports/portfolio-dashboard.html
+python -m kentaro --config examples/configs/demo.toml dashboard --output .kentaro/workspace/dashboards/portfolio-dashboard.html
 ```
 
 Choose a new output filename each time; existing files are never overwritten.
+
+## Local user workspace
+
+Create reports, dashboards, exports, and other work produced through Kentaro
+under `.kentaro/workspace/`. The directory is ignored by Git, so its contents
+are never part of a commit or push. It is created on demand; for example:
+
+```powershell
+New-Item -ItemType Directory -Force .kentaro/workspace/reports
+```
+
+Keep changes to the harness source, documentation, tests, and repository skills
+outside this directory so they remain reviewable project changes.
 
 ## Start the demo
 

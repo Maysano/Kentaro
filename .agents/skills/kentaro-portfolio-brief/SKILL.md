@@ -54,6 +54,7 @@ material limitations. Answer follow-up questions from a fresh retrieval where av
 state when the fixture lacks the requested fields.
 
 Return the brief in chat by default. If the user requests a saved report, save the retrieved
-Markdown under reports/ in the repository using UTF-8, choose a filename that does not
-overwrite an existing report, and link the saved file. Do not modify portfolio records,
-call write APIs, invoke SDK models, or enable MCP for this workflow.
+Markdown under `.kentaro/workspace/reports/` using UTF-8, choose a filename that does not
+overwrite an existing report, and link the saved file. This local user workspace is ignored by
+Git: do not stage, commit, or push its contents. Do not modify portfolio records, call write
+APIs, invoke SDK models, or enable MCP for this workflow.

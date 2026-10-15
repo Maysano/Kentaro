@@ -14,8 +14,8 @@ integration; do not silently substitute the demo or modify configuration to impe
 Render the dashboard as a standalone local web page and make that rendered page the primary
 output. Never default to a source-editor tab, an HTML fragment, or an image. Choose a unique
 ASCII lowercase filename in the thread-scoped visualization directory supplied in writable
-roots. If none is supplied, use a durable output directory within the repository. From the
-repository root run:
+roots. If none is supplied, use `.kentaro/workspace/dashboards/`, which is the ignored local
+user workspace. From the repository root run:
 
 ```powershell
 python -m kentaro --config examples/configs/demo.toml dashboard --output <absolute-output-path>.html
@@ -25,6 +25,7 @@ Replace the path with the chosen absolute path. The command refuses to overwrite
 files. On failure, report the error rather than showing an old snapshot as fresh. Read the
 output back to verify it is a complete HTML document with source details and freshness. The
 renderer uses the same scoped DemoClient as the briefing; do not create a second retrieval path.
+Never stage, commit, or push files beneath `.kentaro/workspace/`.
 
 Start a local HTTP server rooted at the output directory on an unused localhost port, for
 example:
