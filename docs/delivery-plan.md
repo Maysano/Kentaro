@@ -274,14 +274,14 @@ MCP tools should include the existing product, objective, use-case, package, evi
 
 **Exit condition:** Codex, Claude Code, and OpenCode perform the normal Kentaro workflow through the shared CLI or, where configured, named MCP tools, and push approved work to Maysano without the user explaining the process each time.
 
-### Phase 4: Kentaro v0.4, Pluggable Execution Runtimes
+### Phase 4: Kentaro v0.4, Optional External Execution Runtimes
 
-**Goal:** Separate Kentaro's governance and execution-package logic from the technical environment that performs work.
+**Goal:** Add optional external execution runtimes, such as HarnessRouter, without changing Kentaro's governance and execution-package logic.
 
 **Deliverables:**
 
-- Stable internal execution-runtime interface.
-- Optional HarnessRouter adapter, initially with Codex as the supported backend.
+- Stable internal external-runtime interface.
+- Optional adapter for HarnessRouter or a similar external execution runtime, initially with Codex as the supported backend.
 - Runtime status, streamed progress, files, and structured failure mapping into Kentaro evidence.
 - Strict secret handling and customer-controlled credentials.
 - Clear deployment guidance for local, private-cloud, and approved enterprise environments.
