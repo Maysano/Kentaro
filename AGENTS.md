@@ -11,26 +11,27 @@ available to coding agents.
 Kentaro sits on top of Maysano Platform; it does not replace it. Maysano
 Platform remains the system of record for portfolio context, workflow state,
 approvals, evidence, audit trails, and shared services. Kentaro v0.1 is
-read-only and currently supports a synthetic demo only. Live Maysano retrieval
-is not implemented.
+read-only. It supports a synthetic demo and read-only Maysano pilot API
+retrieval of products, business objectives, use cases, and documented links.
 
 At the start of a new Codex conversation in this repository, briefly explain
 the project identity and its currently supported capabilities before responding
 to the user's first substantive request. Kentaro can retrieve and explain a
-sourced synthetic-demo portfolio briefing; list sourced business objectives,
-use cases, or data products; or generate and display a read-only synthetic-demo
+sourced live-pilot or synthetic-demo portfolio briefing; list sourced business
+objectives, use cases, or data products; or generate and display a read-only
 portfolio dashboard with expandable source details.
 
-Make clear that these capabilities use synthetic demo data. For a request
-involving a live customer portfolio, state that the integration is not yet
-available; do not substitute demo data without saying so.
+For live retrieval, use `examples/configs/live.toml` with the ignored
+`.kentaro/workspace/.env` credential file. State that the external API supplies
+no owners, decisions, risks, evidence, approval history, or milestone data;
+do not replace live results with demo data without saying so.
 
 End that opening introduction with the normal text `Try this to get started:`
 followed by this standalone, selectable sample prompt in a fenced text code
 block:
 
 ```text
-Show me the demo portfolio dashboard.
+Show me the portfolio dashboard.
 ```
 
 Kentaro v0.1 is read-only. Never add platform mutation methods or imply approval authority.
@@ -49,27 +50,33 @@ or push anything beneath it. It is for generated reports, dashboards, exports,
 and user work; source changes to the harness, its tests, documentation, and
 repository skills remain tracked project work.
 
+Keep future live API settings only in `.kentaro/workspace/.env`: the pilot base
+URL is `API_BASE_URL=https://app.maysano.com/api/external/v1`, and `API_KEY` is
+the raw key without the `Bearer ` prefix. Never read, print, stage, commit,
+push, log, or place that value in a report. The current synthetic demo has no
+live API transport and must not claim to use it.
+
 ## Conversational portfolio workflows
 
 For requests to list or show Kentaro business objectives, read
 `.agents/skills/kentaro-list-objectives/SKILL.md` and run its retrieval workflow.
 Present the sourced objective list in chat; users do not need to type the underlying CLI command.
-Only the synthetic demo is implemented. State that limitation for live portfolio requests.
+Use the live profile by default; use the demo only when explicitly requested.
 
 For requests to list or show Kentaro use cases, read
 `.agents/skills/kentaro-list-use-cases/SKILL.md` and run its retrieval workflow.
 Present the sourced use-case list in chat; users do not need to type the underlying CLI command.
-Only the synthetic demo is implemented. State that limitation for live portfolio requests.
+Use the live profile by default; use the demo only when explicitly requested.
 
 For requests to list or show Kentaro data products, read
 `.agents/skills/kentaro-list-data-products/SKILL.md` and run its retrieval workflow.
 Present the sourced product list in chat; users do not need to type the underlying CLI command.
-Only the synthetic demo is implemented. State that limitation for live portfolio requests.
+Use the live profile by default; use the demo only when explicitly requested.
 
 For requests to brief or explain the Kentaro portfolio, read
 `.agents/skills/kentaro-portfolio-brief/SKILL.md` and run its retrieval workflow.
 Present the sourced briefing in chat; users do not need to type the underlying CLI command.
-Only the synthetic demo is implemented. State that limitation for live portfolio requests.
+Use the live profile by default; use the demo only when explicitly requested.
 
 For portfolio dashboard requests, read
 `.agents/skills/kentaro-portfolio-dashboard/SKILL.md`, generate the dashboard through Kentaro,

@@ -4,41 +4,42 @@
 
 Kentaro is an open-source, MIT-licensed harness for working with Maysano through Codex, Claude Code, and OpenCode.
 
-It gives coding agents the business context, structured artefacts, working rules, SDK capabilities, approved tools, and human approval boundaries needed to work on real business objectives, use cases, data products, implementation packages, and outcome evidence.
+It gives coding agents sourced business context and local, versioned governance and delivery objects for reviewing objectives, use cases, data products, delivery packages, and outcome evidence. v0.1 does not execute tools or process approvals.
 
 Kentaro sits on top of Maysano Platform. It does not replace the platform.
 
 ## Use Kentaro in Codex
 
-Ask **"Give me a demo portfolio briefing"** or **"Which demo portfolio records have missing owners?"**
-Codex can retrieve the fixture through Kentaro and explain the sourced results in chat.
+Ask **"Give me a portfolio briefing"** or **"List the portfolio data products"**.
+Codex can retrieve the configured live pilot portfolio through Kentaro and explain sourced results in chat.
 The repository skill is `.agents/skills/kentaro-portfolio-brief/SKILL.md` and can also be
 explicitly requested as `$kentaro-portfolio-brief` once discovered by Codex.
 If the new skill is not listed in an existing session, start a new chat in this repository;
 the root `AGENTS.md` also points to the workflow for conversational requests.
-The current workflow uses synthetic data; live Maysano retrieval remains pending.
+The live workflow reads only Maysano's documented external pilot API. It does not write, cache,
+or expose the local API key; the synthetic demo remains available when explicitly requested.
 
-Ask **"List the demo data products"** to retrieve a compact, sourced inventory of data
+Ask **"List the data products"** to retrieve a compact, sourced inventory of data
 products, their owners, recorded states, linked use cases, and provenance. The workflow is
 defined in `.agents/skills/kentaro-list-data-products/SKILL.md` and uses the same synthetic
-demo limitation.
+source limitations: the external API does not return owners.
 
-Ask **"List the demo use cases"** to retrieve a compact, sourced inventory of use cases,
+Ask **"List the use cases"** to retrieve a compact, sourced inventory of use cases,
 their owners, recorded states, supporting objectives, linked data products, and provenance.
-The workflow is defined in `.agents/skills/kentaro-list-use-cases/SKILL.md` and uses the same
-synthetic demo limitation.
+The workflow is defined in `.agents/skills/kentaro-list-use-cases/SKILL.md` and preserves the
+same live-source limitations.
 
-Ask **"List the demo business objectives"** to retrieve a compact, sourced inventory of
+Ask **"List the business objectives"** to retrieve a compact, sourced inventory of
 objectives, their owners, recorded states, supported use cases, and provenance. The workflow is
-defined in `.agents/skills/kentaro-list-objectives/SKILL.md` and uses the same synthetic demo
-limitation.
+defined in `.agents/skills/kentaro-list-objectives/SKILL.md` and preserves the same live-source
+limitations.
 
-Ask **"Show me the demo portfolio dashboard"** to display a rendered status snapshot in the conversation with
+Ask **"Show me the portfolio dashboard"** to display a rendered status snapshot in the conversation with
 expandable source details. The dashboard skill lives at
 `.agents/skills/kentaro-portfolio-dashboard/SKILL.md`. To generate it manually:
 
 ```powershell
-python -m kentaro --config examples/configs/demo.toml dashboard --output .kentaro/workspace/dashboards/portfolio-dashboard.html
+python -m kentaro --config examples/configs/live.toml --env-file .kentaro/workspace/.env dashboard --output .kentaro/workspace/dashboards/portfolio-dashboard.html
 ```
 
 Choose a new output filename each time; existing files are never overwritten.
@@ -68,10 +69,28 @@ python -m unittest discover -s tests -v
 ```
 
 Install the CLI with `python -m pip install -e .`, then use `kentaro` in place of `python -m kentaro`.
-No customer credentials, live API, cache or SDK model calls are implemented yet.
-The dashboard is a static synthetic snapshot, with no automatic refresh or saved-view configuration.
+No cache or SDK model calls are implemented. Live pilot API retrieval is GET-only, uses the
+ignored local credential file, and has no mutation capability. The dashboard is a static
+snapshot with no automatic refresh or saved-view configuration.
 See [implementation status](docs/roadmap.md), [API capability matrix](docs/api-contract.md),
 [configuration](docs/configuration.md) and [data boundaries](docs/security-and-data-boundaries.md).
+
+## Local governance and delivery validation
+
+The v0.1 object model is local-only. It validates a `Mandate → Work Envelope →
+Execution Package → Execution Requests → Evidence Bundle` chain without executing
+an action. Start with the synthetic [governance example](examples/governance/retention-review.json):
+
+```powershell
+python -m kentaro --config examples/configs/demo.toml object validate --input examples/governance/retention-review.json
+python -m kentaro --config examples/configs/demo.toml policy evaluate --input examples/governance/retention-review.json --request-id request-retention-note
+python -m kentaro --config examples/configs/demo.toml evidence export --input examples/governance/retention-review.json --request-id request-retention-note --actor local-user --hash-chain --output .kentaro/workspace/evidence/retention-review.jsonl
+python -m kentaro --config examples/configs/demo.toml evidence verify --input .kentaro/workspace/evidence/retention-review.jsonl
+```
+
+`allowed` means that the proposal is structurally in scope; it never permits
+execution. Evidence output is append-oriented and redacted, with optional hash
+chaining for tamper indication. It is not an immutable or compliance-grade audit log.
 
 ## Planned capabilities
 
@@ -91,10 +110,10 @@ Codex / Claude Code / OpenCode
                 │
         Kentaro Harness
   ┌─────────────────────────────┐
-  │ Open Data Products SDK      │
-  │ SDK model configuration     │
-  │ Local or cloud model use    │
-  │ Workspace and repo adapters │
+  │ Read-only context retrieval │
+  │ Local schema validation     │
+  │ Deterministic policy logic  │
+  │ Redacted evidence export    │
   └─────────────────────────────┘
                 │
       Maysano Platform APIs
@@ -108,7 +127,7 @@ Codex / Claude Code / OpenCode
   └─────────────────────────────┘
 ```
 
-The SDK executes model work inside the Harness. Its configuration selects the local LLM server, approved cloud model, or hybrid routing policy for each deployment.
+The selected SDK and any model work remain outside v0.1. The harness does not invoke local or cloud models, external tools, or side-effecting adapters.
 
 Maysano Platform remains the shared system of record. It holds the portfolio context, workflow state, approvals, evidence, audit trail, and shared services used by both the GUI and Kentaro workspaces.
 
@@ -125,7 +144,7 @@ It provides:
 - Risks, decisions, owners, delivery state, and evidence
 - Manager-customisable dashboard
 - Context retrieval for Codex, Claude Code, and OpenCode
-- Open Data Products SDK working capabilities
+- Local governance/delivery validation, policy evaluation, and evidence export
 
 ### Version 0.2: Governed actions (next)
 

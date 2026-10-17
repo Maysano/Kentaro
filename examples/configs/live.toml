@@ -1,0 +1,16 @@
+schema_version = 1
+profile = "live"
+read_only = true
+scope = "organization-bound"
+
+[cache]
+enabled = false
+ttl_seconds = 300
+classification = "confidential"
+
+[model]
+mode = "local"
+enabled = false
+permitted_providers = []
+cloud_task_classes = []
+no_send_classifications = ["confidential", "restricted"]
