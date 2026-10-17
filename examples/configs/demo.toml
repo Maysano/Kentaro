@@ -2,7 +2,7 @@ schema_version = 1
 profile = "demo"
 read_only = true
 scope = "portfolio-demo"
-fixture = "../demo-portfolio/portfolio.json"
+fixture = "../../kentaro/resources/demo-portfolio.json"
 
 [cache]
 enabled = false

@@ -4,14 +4,39 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kentaro"
-version = "0.1.0.dev0"
-description = "Read-only Maysano portfolio context for agent workspaces"
+version = "0.1.0"
+description = "Read-only Agentic Maysano Harness for sourced portfolio context and local governance validation"
+readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 license = "MIT"
+authors = [{name = "Maysano"}]
+keywords = ["agents", "governance", "maysano", "odps", "portfolio", "read-only"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
 dependencies = []
+
+[project.optional-dependencies]
+odps = ["open-data-products>=0.3.4,<0.5"]
+
+[project.urls]
+Homepage = "https://maysano.com/kentaro"
+Documentation = "https://github.com/Maysano/Kentaro/tree/main/docs"
+Repository = "https://github.com/Maysano/Kentaro"
+Issues = "https://github.com/Maysano/Kentaro/issues"
+"ODPS Specifications" = "https://opendataproducts.org/"
 
 [project.scripts]
 kentaro = "kentaro.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["kentaro*"]
+
+[tool.setuptools.package-data]
+kentaro = ["resources/*.json"]

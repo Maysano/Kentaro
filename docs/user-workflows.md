@@ -1,28 +1,37 @@
-# Demo walkthrough
+# Local portfolio walkthrough
 
-In a Codex chat for this repository, ask "Give me a demo portfolio briefing."
-The `kentaro-portfolio-brief` skill runs the command below and returns a sourced answer in chat.
-You can follow up with "Which records lack owners?" or request a saved Markdown report.
-The skill is stored under `.agents/skills/` for repository discovery. A new chat may be
-needed to discover newly added skills; root instructions also link to the workflow.
+Run the packaged synthetic briefing from any working directory after installing
+Kentaro:
 
-
-From the repository root run the brief command in docs/configuration.md. Check that uc-2
-has missing ownership, inspect its source in examples/demo-portfolio/portfolio.json, and
-compare the recommendation with the source facts. Counts derive only from listed scoped records.
-
-To save a reviewable local output in PowerShell:
-
-```powershell
-New-Item -ItemType Directory -Force .kentaro/workspace/reports
-python -m kentaro --config examples/configs/demo.toml portfolio brief | Out-File -Encoding utf8 .kentaro/workspace/reports/demo-brief.md
+```shell
+kentaro portfolio brief
 ```
 
-`.kentaro/workspace/` is the local user workspace. It is ignored by Git and its
-contents must not be staged, committed, or pushed.
+The output identifies the synthetic source references. If a record has no owner,
+Kentaro presents that as a source limitation rather than inferring an owner. Counts
+derive only from the records in the bounded synthetic context.
 
-Ask "Show me the demo portfolio dashboard" to display a rendered read-only snapshot directly in the conversation.
-Expand record titles to inspect versions, timestamps, references and relationships.
-Ask for a refresh to retrieve a new snapshot. Delivery health remains unknown where inputs are absent.
+To generate a dashboard, run:
 
-Use-case review, product coverage, delivery readiness and decision trace remain unimplemented.
+```shell
+kentaro dashboard
+```
+
+Kentaro creates `.kentaro/workspace/` automatically, writes a fresh timestamped HTML
+file there, and prints its complete path. It never overwrites an existing dashboard.
+
+In a Codex chat for this repository, ask “Give me a demo portfolio briefing” or
+“Show me the portfolio dashboard.” The skills retrieve the same sourced read-only
+context and expose source details. The demo is not a live platform connection or a
+model-assisted analysis.
+
+For an authorised live pilot read, use the guided setup first:
+
+```shell
+kentaro configure maysano
+kentaro portfolio brief --source maysano
+```
+
+The external pilot omits ownership, approvals, decisions, risks, evidence, and
+milestones. Kentaro marks those fields unavailable. It never substitutes demo data
+for a live result, executes actions, or writes to the platform.

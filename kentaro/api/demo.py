@@ -1,6 +1,17 @@
 """Local fixture contract. This module contains no network transport."""
 import json
 from datetime import datetime, timezone
+from importlib.resources import as_file, files
+
+
+DEMO_SCOPE = "portfolio-demo"
+
+
+def read_packaged_demo() -> dict:
+    """Read the synthetic demo packaged with Kentaro; no configuration or network is used."""
+    resource = files("kentaro.resources").joinpath("demo-portfolio.json")
+    with as_file(resource) as fixture:
+        return DemoClient(fixture, DEMO_SCOPE).read_portfolio()
 
 
 class DemoClient:

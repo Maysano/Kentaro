@@ -29,7 +29,7 @@ no authority outside the local harness.
 ### v0.1 does not
 
 - create external records;
-- execute tools, calls, or side effects;
+- execute business tools, business actions, or platform side effects;
 - request, receive, or process real approvals;
 - write to Maysano or to its business context graph;
 - use a network adapter for mutation; or
@@ -98,12 +98,26 @@ kentaro object validate
 kentaro policy evaluate
 kentaro evidence export
 kentaro evidence verify
+kentaro data-product draft <source-path>
+kentaro data-product validate <artifact-path>
+kentaro use-case draft <source-path>
+kentaro use-case validate <artifact-path>
+kentaro objective draft <source-path>
+kentaro objective validate <artifact-path>
 ```
 
 `object validate`, `policy evaluate`, and `evidence export` use local JSON object
 bundles. [The synthetic example](../examples/governance/retention-review.json)
 is a starting point for local instances; it never creates a product, objective,
 use case, or other record in Maysano.
+
+The `data-product`, `use-case`, and `objective` draft and validate commands are optional
+`kentaro[odps]` integrations. They can invoke the ODPS SDK to generate and validate
+local proposed artifacts aligned with the [Open Data Products (ODPS) family of
+specifications](https://opendataproducts.org/) from Markdown or text. The default
+provider is local Ollama. A hosted provider requires an explicit configuration and user
+acknowledgement before source content can leave the machine. They never create a Maysano
+record or grant business authority.
 
 ### Python API, required for the core
 
