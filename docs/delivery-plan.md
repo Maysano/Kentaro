@@ -152,13 +152,18 @@ and customer content must not be committed.
 
 1. Document and ratify the v0.1 read-only boundary and object model.
 2. Define versioned schemas for `ContextPackage`, `Mandate`, `WorkEnvelope`,
-   `ExecutionPackage`, `ExecutionRequest`, `EvidenceEvent`, and `Correction`.
-3. Implement pure relationship validation, including the execution-package authority invariant.
+   `ExecutionPackage`, `ExecutionRequest`, `RevocationPolicy`, `EvidenceEvent`, and `Correction`.
+3. Implement pure relationship validation, including the execution-package authority invariant and the required revocation clause.
 4. Implement the deterministic, side-effect-free policy evaluator.
 5. Implement redacted, append-oriented evidence exports and reports.
 6. Add tests for missing owners, expired approvals, out-of-envelope tools, stale or
    conflicting sources, authority escalation, secret redaction, and reproducible evidence links.
 7. Preserve and extend sourced read-only context retrieval, briefings, lists, and dashboards.
+
+The v0.1 revocation clause validates local, versioned `RevocationPolicy` objects and
+shows their structural status in review-readiness output. It does not suspend access,
+hold credentials, request approvals, submit requests, or execute actions. Maysano
+must own any future authoritative revocation state and enforcement.
 
 No live write adapter, approval workflow, external tool executor, or graph write path
 belongs in this implementation order.

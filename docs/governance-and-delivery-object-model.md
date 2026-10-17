@@ -4,8 +4,8 @@
 
 This specification is the target object architecture for Kentaro. In v0.1, these
 objects are local, versioned schemas and validation inputs only. They do not create
-Maysano records, authorise action, request approvals, invoke tools, or write to the
-business context graph.
+Maysano records, authorise action, request approvals, invoke tools, suspend live
+access, or write to the business context graph.
 
 Maysano remains the system of record for portfolio state, approvals, graph updates,
 tenant controls, and platform audit. A future write or execution capability requires
@@ -15,13 +15,11 @@ an explicit approval path, and contract tests.
 ## Relationship model
 
 ```text
-ContextPackage ─┐
-                ├── Mandate → Work Envelope → Execution Package
-                │                                  │
-                │                                  └── Execution Requests
-                │                                           │
-Correction ─────┴──────────────────────────────────────────┴── Evidence Bundle
-                                                       (Evidence Events)
+ContextPackage ────────────────────────────────────────────────────┐
+Mandate → Work Envelope → Execution Package → Execution Requests ──┼── Evidence Bundle
+                           ▲                    │                   │   (Evidence Events)
+                           └── RevocationPolicy ┘                   │
+Correction ────────────────────────────────────────────────────────┘
 ```
 
 The primary authority and delivery path is:
@@ -87,8 +85,66 @@ scope, or approval rights beyond its referenced `WorkEnvelope` and `Mandate`.
 
 A proposed individual action linked to an `ExecutionPackage`. It contains the
 declared action, target, redacted parameters, requested authority level, and any
-required source references. In v0.1 it is only evaluated; no request is executed or
-sent to an external system.
+required source references. It must reference a versioned `RevocationPolicy` that
+matches its WorkEnvelope and Mandate chain. In v0.1 it is only evaluated; no request
+is executed or sent to an external system.
+
+### RevocationPolicy and the required revocation clause
+
+Every future execution-capable agent or capability must have an active
+`RevocationPolicy`; this is a required control, not an optional best practice. The
+**revocation clause** answers, for the declared scope, both questions that make
+authority reversible:
+
+1. Which behaviour suspends the agent's authority or credentials?
+2. Which accountable human role can suspend, restore, or narrow that access?
+
+In v0.1, a `RevocationPolicy` is a local, versioned declaration. Kentaro validates
+the declaration, includes its local status and version in review-readiness output,
+and records that classification in local evidence. It does not hold credentials,
+suspend live access, submit a request, execute an action, or claim that a local
+status reflects Maysano's live state.
+
+The JSON object retains the common `id` so references use the same local object
+format. Its required `policyId` must equal that `id`; this avoids two competing
+identifiers. Required fields are:
+
+| Field | Requirement |
+| --- | --- |
+| `policyId`, `version` | Stable policy identifier and positive version. `policyId` equals `id`. |
+| `scope` | One of `agent`, `capability`, `connector`, `workspace`, or `mandate`. |
+| `authorityChain` | References the Mandate and WorkEnvelope and names roles allowed to suspend, restore, narrow, and perform emergency suspension. |
+| `accountableOwnerRole` | The named role accountable for the agent's business purpose. |
+| `suspensionTriggers`, `triggerThresholds` | Includes every minimum trigger below and a positive threshold for repeated correction, rejection, or safety failure. |
+| `severity`, `immediateAction` | Declared severity and one of `disable_execution`, `disable_connector`, `require_human_review`, or `restrict_scope`. |
+| `evidenceRequirements`, `notificationTargets` | Required local evidence and named recipients. |
+| `restorationRequirements` | Requirements for a future restoration decision. |
+| `expiryOrReviewDate` | Timestamp after which local classification escalates. |
+| `localStatus` | `declared_active` or `simulated_suspended`; it is a local validation/simulation value, not live access state. |
+
+The minimum suspension triggers are:
+
+- action outside the approved WorkEnvelope or Mandate;
+- payload, scope, or target that differs from the approved version or digest;
+- required source evidence that is missing, stale, or contradictory;
+- confidential, personal, or credential-derived data in an unapproved output or request;
+- deterministic validation or policy-control failure;
+- repeated correction, rejection, or safety failure crossing a declared threshold;
+- identity, connector, or credential integrity that cannot be verified; and
+- emergency suspension issued by a named accountable authority.
+
+The named future Maysano roles are:
+
+| Role | Responsibility |
+| --- | --- |
+| Service Owner | Accountable for the agent's business purpose. |
+| Policy Owner | Owns the applicable governance rule. |
+| Connector Owner | Suspends or restores connector credentials. |
+| Security Officer | Issues emergency suspension for security or data exposure. |
+| Platform Administrator | Carries out authorised technical suspension and restoration. |
+
+Every policy must name an accountable owner and at least one emergency authority;
+the v0.1 schema requires `Security Officer` in the emergency-suspension roles.
 
 ### EvidenceEvent and Evidence Bundle
 
@@ -116,6 +172,9 @@ The validator rejects or escalates the following conditions:
 | Missing named owner for a decision or requested change | `escalated` |
 | ExecutionPackage has no WorkEnvelope reference | `denied` |
 | ExecutionPackage expands its envelope or mandate | `denied` |
+| ExecutionRequest lacks a matching RevocationPolicy version | validation failure |
+| RevocationPolicy lacks a named owner, emergency authority, required trigger, or valid authority chain | validation failure |
+| Locally simulated RevocationPolicy suspension | `denied`; no action is dispatched |
 | ExecutionRequest uses a tool outside the envelope | `denied` |
 | Required context is stale, conflicting, or unknown | `escalated` |
 | Evidence link lacks a source ID, version, or timestamp | validation failure |
@@ -126,8 +185,11 @@ v0.1 neither requests nor processes an approval.
 ## Deterministic policy evaluator
 
 The evaluator is a pure function of an `ExecutionRequest`, its referenced
-`ExecutionPackage`, `WorkEnvelope`, `Mandate`, and `ContextPackage` metadata. It
-must not call tools, make network mutations, request approval, or cause side effects.
+`ExecutionPackage`, `WorkEnvelope`, `Mandate`, `RevocationPolicy`, and
+`ContextPackage` metadata. It must not call tools, make network mutations, request
+approval, or cause side effects. A locally simulated suspension or expired policy
+review date changes only the structural classification; it cannot suspend credentials
+or enforce live access.
 
 | Outcome | Meaning in v0.1 |
 | --- | --- |
@@ -145,6 +207,7 @@ An export includes:
 
 - Context source IDs, source versions, and retrieval timestamps.
 - Mandate, WorkEnvelope, and ExecutionPackage IDs and versions.
+- RevocationPolicy ID, version, local status, review date, and classification result.
 - Proposed execution requests and policy outcomes.
 - Generated output references and redaction status.
 - Actor identities, event timestamps, and correction references.
@@ -164,4 +227,20 @@ inferring a favourable state.
 - Secret redaction.
 - Evidence links that reproduce the context and authority used.
 - An ExecutionPackage attempting to exceed its WorkEnvelope or Mandate.
+- A missing or mismatched RevocationPolicy reference.
+- Missing minimum revocation triggers or named emergency authority.
+- A simulated suspension denying classification without any credential, approval, or execution operation.
 - `allowed` producing no external call, mutation, or approval request.
+
+## Future Maysano-controlled revocation enforcement
+
+The revocation clause becomes authoritative only in a future Maysano-governed write
+and execution path. Maysano—not local Kentaro—owns revocation state, credentials,
+enforcement, retention, and audit evidence. A suspension must take effect before the
+next external action; emergency suspension disables the relevant execution permission
+or credential. A suspended agent must not resume from cached authority.
+
+Restoration requires a new, versioned Maysano decision record with rationale,
+evidence, exact scope, timestamp, expiry, named authority, and the bound request and
+payload/diff digest. It does not mutate the ExecutionRequest. Each execution request
+must reference the active RevocationPolicy version before Maysano dispatches it.

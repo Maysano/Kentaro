@@ -13,9 +13,25 @@ OBJECT_TYPES = {
     "work_envelope",
     "execution_package",
     "execution_request",
+    "revocation_policy",
     "evidence_event",
     "correction",
 }
+REVOCATION_SCOPES = {"agent", "capability", "connector", "workspace", "mandate"}
+REVOCATION_SEVERITIES = {"low", "medium", "high", "critical"}
+REVOCATION_ACTIONS = {"disable_execution", "disable_connector", "require_human_review", "restrict_scope"}
+MAYSANO_ROLES = {"Service Owner", "Policy Owner", "Connector Owner", "Security Officer", "Platform Administrator"}
+MINIMUM_SUSPENSION_TRIGGERS = {
+    "outside_work_envelope_or_mandate",
+    "payload_scope_or_target_differs_from_approved_digest",
+    "source_evidence_missing_stale_or_contradictory",
+    "unapproved_confidential_personal_or_credential_derived_data",
+    "deterministic_validation_or_policy_control_failed",
+    "repeated_correction_rejection_or_safety_failure_threshold",
+    "identity_connector_or_credential_integrity_unverified",
+    "emergency_suspension_by_accountable_authority",
+}
+LOCAL_REVOCATION_STATUSES = {"declared_active", "simulated_suspended"}
 COMMON_FIELDS = {
     "id",
     "object_type",
@@ -59,6 +75,10 @@ def _finding(code: str, message: str, *, object_id: str | None = None, severity:
 
 def _is_string_list(value: object) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) and item for item in value)
+
+
+def _is_role_list(value: object) -> bool:
+    return _is_string_list(value) and bool(value) and set(value).issubset(MAYSANO_ROLES)
 
 
 def _validate_reference(value: object, field: str, object_id: str, findings: list[dict]) -> None:
@@ -131,8 +151,47 @@ def _validate_object(item: object, findings: list[dict]) -> None:
                 findings.append(_finding("invalid_delivery_plan", f"ExecutionPackage {field} must be a list of nonempty strings", object_id=object_id))
         if not isinstance(item.get("timing"), str) or not item["timing"]:
             findings.append(_finding("invalid_timing", "ExecutionPackage requires timing", object_id=object_id))
+    elif kind == "revocation_policy":
+        if not isinstance(item.get("policyId"), str) or item.get("policyId") != object_id:
+            findings.append(_finding("invalid_policy_id", "RevocationPolicy policyId must equal its stable id", object_id=object_id))
+        if item.get("scope") not in REVOCATION_SCOPES:
+            findings.append(_finding("invalid_revocation_scope", "RevocationPolicy scope is unsupported", object_id=object_id))
+        chain = item.get("authorityChain")
+        if not isinstance(chain, dict):
+            findings.append(_finding("invalid_authority_chain", "RevocationPolicy requires an authorityChain object", object_id=object_id))
+        else:
+            _validate_reference(chain.get("mandate_reference"), "authorityChain.mandate_reference", object_id, findings)
+            _validate_reference(chain.get("work_envelope_reference"), "authorityChain.work_envelope_reference", object_id, findings)
+            for field in ("suspendAuthorities", "restoreAuthorities", "narrowAuthorities", "emergencySuspendAuthorities"):
+                if not _is_role_list(chain.get(field)):
+                    findings.append(_finding("invalid_revocation_authority", f"authorityChain {field} must name one or more Maysano roles", object_id=object_id))
+            if "Security Officer" not in chain.get("emergencySuspendAuthorities", []):
+                findings.append(_finding("missing_emergency_authority", "RevocationPolicy emergencySuspendAuthorities must include Security Officer", object_id=object_id))
+        if item.get("accountableOwnerRole") not in MAYSANO_ROLES:
+            findings.append(_finding("invalid_accountable_owner", "RevocationPolicy requires a named Maysano accountableOwnerRole", object_id=object_id))
+        triggers = item.get("suspensionTriggers")
+        if not _is_string_list(triggers) or not MINIMUM_SUSPENSION_TRIGGERS.issubset(set(triggers)):
+            findings.append(_finding("missing_suspension_triggers", "RevocationPolicy must include every minimum suspension trigger", object_id=object_id))
+        thresholds = item.get("triggerThresholds")
+        repeated_failure_threshold = thresholds.get("repeated_correction_rejection_or_safety_failure_threshold") if isinstance(thresholds, dict) else None
+        if type(repeated_failure_threshold) is not int or repeated_failure_threshold < 1:
+            findings.append(_finding("invalid_trigger_threshold", "RevocationPolicy must define a positive repeated correction, rejection, or safety-failure threshold", object_id=object_id))
+        if item.get("severity") not in REVOCATION_SEVERITIES:
+            findings.append(_finding("invalid_revocation_severity", "RevocationPolicy severity is unsupported", object_id=object_id))
+        if item.get("immediateAction") not in REVOCATION_ACTIONS:
+            findings.append(_finding("invalid_immediate_action", "RevocationPolicy immediateAction is unsupported", object_id=object_id))
+        for field in ("evidenceRequirements", "restorationRequirements"):
+            if not _is_string_list(item.get(field)) or not item[field]:
+                findings.append(_finding("invalid_revocation_requirements", f"RevocationPolicy {field} must be a nonempty list of strings", object_id=object_id))
+        if not _is_role_list(item.get("notificationTargets")):
+            findings.append(_finding("invalid_notification_targets", "RevocationPolicy notificationTargets must name one or more Maysano roles", object_id=object_id))
+        if not _is_timestamp(item.get("expiryOrReviewDate")):
+            findings.append(_finding("invalid_revocation_review_date", "RevocationPolicy expiryOrReviewDate must be an ISO 8601 timestamp", object_id=object_id))
+        if item.get("localStatus") not in LOCAL_REVOCATION_STATUSES:
+            findings.append(_finding("invalid_local_revocation_status", "RevocationPolicy localStatus must be declared_active or simulated_suspended", object_id=object_id))
     elif kind == "execution_request":
         _validate_reference(item.get("execution_package_reference"), "execution_package_reference", object_id, findings)
+        _validate_reference(item.get("revocation_policy_reference"), "revocation_policy_reference", object_id, findings)
         for field in ("action", "tool", "target"):
             if not isinstance(item.get(field), str) or not item[field]:
                 findings.append(_finding("invalid_request", f"ExecutionRequest requires {field}", object_id=object_id))
@@ -228,8 +287,28 @@ def validate_bundle(bundle: dict) -> dict:
                         findings.append(_finding("package_expands_envelope", f"ExecutionPackage {field} exceeds its WorkEnvelope", object_id=object_id))
                 if item["authority_level"] > envelope["authority_level"]:
                     findings.append(_finding("package_expands_envelope", "ExecutionPackage authority_level exceeds its WorkEnvelope", object_id=object_id))
+        elif item["object_type"] == "revocation_policy":
+            chain = item["authorityChain"]
+            mandate = _referenced(index, chain["mandate_reference"])
+            envelope = _referenced(index, chain["work_envelope_reference"])
+            if not mandate or mandate.get("object_type") != "mandate":
+                findings.append(_finding("missing_revocation_mandate", "RevocationPolicy must reference an existing Mandate version", object_id=object_id))
+            if not envelope or envelope.get("object_type") != "work_envelope":
+                findings.append(_finding("missing_revocation_work_envelope", "RevocationPolicy must reference an existing WorkEnvelope version", object_id=object_id))
+            elif mandate and envelope.get("mandate_reference") != chain["mandate_reference"]:
+                findings.append(_finding("revocation_authority_chain_mismatch", "RevocationPolicy WorkEnvelope must belong to its referenced Mandate", object_id=object_id))
         elif item["object_type"] == "execution_request":
             package = _referenced(index, item["execution_package_reference"])
             if not package or package.get("object_type") != "execution_package":
                 findings.append(_finding("missing_execution_package", "ExecutionRequest must reference an existing ExecutionPackage version", object_id=object_id))
+                continue
+            policy = _referenced(index, item["revocation_policy_reference"])
+            if not policy or policy.get("object_type") != "revocation_policy":
+                findings.append(_finding("missing_revocation_policy", "ExecutionRequest must reference an existing RevocationPolicy version", object_id=object_id))
+                continue
+            envelope = _referenced(index, package.get("work_envelope_reference"))
+            mandate = _referenced(index, envelope.get("mandate_reference")) if envelope else None
+            chain = policy["authorityChain"]
+            if not envelope or not mandate or chain["work_envelope_reference"] != package["work_envelope_reference"] or chain["mandate_reference"] != envelope["mandate_reference"]:
+                findings.append(_finding("revocation_policy_chain_mismatch", "ExecutionRequest RevocationPolicy must match its WorkEnvelope and Mandate chain", object_id=object_id))
     return {"valid": not findings, "findings": findings}

@@ -22,8 +22,14 @@ def _result(outcome: str, request: dict, chain: dict, rules: list[dict], evaluat
         "execution_request": {"id": request["id"], "version": request["version"]},
         "evaluated_objects": [
             {"id": chain[name]["id"], "version": chain[name]["version"], "object_type": chain[name]["object_type"]}
-            for name in ("execution_package", "work_envelope", "mandate")
+            for name in ("execution_package", "work_envelope", "mandate", "revocation_policy")
         ],
+        "revocation_policy": {
+            "policy_id": chain["revocation_policy"]["policyId"],
+            "version": chain["revocation_policy"]["version"],
+            "local_status": chain["revocation_policy"]["localStatus"],
+            "expiry_or_review_date": chain["revocation_policy"]["expiryOrReviewDate"],
+        },
         "rules": rules,
         "evaluated_at": evaluated_at.isoformat(),
         "execution_permitted": False,
@@ -53,11 +59,23 @@ def evaluate_execution_request(bundle: dict, request_id: str, *, request_version
     package = _resolve(index, request, "execution_package_reference")
     envelope = _resolve(index, package or {}, "work_envelope_reference")
     mandate = _resolve(index, envelope or {}, "mandate_reference")
-    if not package or not envelope or not mandate:
-        raise ValueError("ExecutionRequest requires a complete ExecutionPackage, WorkEnvelope, and Mandate chain")
-    chain = {"execution_package": package, "work_envelope": envelope, "mandate": mandate}
+    revocation_policy = _resolve(index, request, "revocation_policy_reference")
+    if not package or not envelope or not mandate or not revocation_policy:
+        raise ValueError("ExecutionRequest requires a complete ExecutionPackage, WorkEnvelope, Mandate, and RevocationPolicy chain")
+    chain = {
+        "execution_package": package,
+        "work_envelope": envelope,
+        "mandate": mandate,
+        "revocation_policy": revocation_policy,
+    }
     rules: list[dict] = []
 
+    if revocation_policy["localStatus"] == "simulated_suspended":
+        rules.append({"id": "simulated_revocation_suspension", "result": "denied", "reason": "The local RevocationPolicy simulation is suspended. Kentaro does not suspend live access or dispatch actions."})
+        return _result("denied", request, chain, rules, now)
+    if _expired(revocation_policy["expiryOrReviewDate"], now):
+        rules.append({"id": "revocation_policy_review_expired", "result": "escalated", "reason": "RevocationPolicy has expired or requires review; v0.1 has no live revocation state."})
+        return _result("escalated", request, chain, rules, now)
     if not mandate.get("owner") or not envelope.get("owner"):
         rules.append({"id": "missing_owner", "result": "escalated", "reason": "Mandate and WorkEnvelope require named owners for evaluation."})
         return _result("escalated", request, chain, rules, now)

@@ -34,6 +34,38 @@ class GovernanceTests(unittest.TestCase):
         self.assertEqual(result["outcome"], "allowed")
         self.assertFalse(result["execution_permitted"])
         self.assertEqual(result["rules"][0]["id"], "structurally_in_scope")
+        self.assertEqual(result["revocation_policy"]["policy_id"], "revocation-retention-draft")
+        self.assertEqual(result["revocation_policy"]["local_status"], "declared_active")
+
+    def test_execution_request_requires_a_valid_revocation_policy_reference(self):
+        bundle = deepcopy(self.bundle)
+        del object_by_id(bundle, "request-retention-note")["revocation_policy_reference"]
+        result = validate_bundle(bundle)
+        self.assertFalse(result["valid"])
+        self.assertTrue(any(finding["code"] == "invalid_reference" for finding in result["findings"]))
+
+    def test_revocation_policy_requires_all_minimum_triggers_and_an_emergency_authority(self):
+        bundle = deepcopy(self.bundle)
+        policy = object_by_id(bundle, "revocation-retention-draft")
+        policy["suspensionTriggers"].pop()
+        policy["authorityChain"]["emergencySuspendAuthorities"] = ["Service Owner"]
+        policy["triggerThresholds"]["repeated_correction_rejection_or_safety_failure_threshold"] = 0
+        result = validate_bundle(bundle)
+        self.assertFalse(result["valid"])
+        codes = {finding["code"] for finding in result["findings"]}
+        self.assertIn("missing_suspension_triggers", codes)
+        self.assertIn("missing_emergency_authority", codes)
+        self.assertIn("invalid_trigger_threshold", codes)
+
+    def test_simulated_suspension_blocks_classification_without_live_access_operation(self):
+        bundle = deepcopy(self.bundle)
+        object_by_id(bundle, "revocation-retention-draft")["localStatus"] = "simulated_suspended"
+        with patch("kentaro.api.live.urlopen") as urlopen:
+            result = self.evaluate(bundle)
+        self.assertEqual(result["outcome"], "denied")
+        self.assertEqual(result["rules"][0]["id"], "simulated_revocation_suspension")
+        self.assertFalse(result["execution_permitted"])
+        urlopen.assert_not_called()
 
     def test_execution_package_cannot_expand_work_envelope(self):
         bundle = deepcopy(self.bundle)
@@ -99,6 +131,7 @@ class GovernanceTests(unittest.TestCase):
         self.assertEqual(event["payload"]["context_packages"][0]["id"], "context-retention-review")
         self.assertEqual(event["payload"]["evaluated_objects"][1]["id"], "work-retention-review")
         self.assertEqual(event["payload"]["evaluated_objects"][2]["id"], "mandate-commercial-analysis")
+        self.assertEqual(event["payload"]["evaluated_objects"][3]["id"], "revocation-retention-draft")
         self.assertEqual(event["actor"], "test-user")
         self.assertEqual(event["source_references"][0]["version"], 1)
         with TemporaryDirectory() as directory:

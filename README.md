@@ -92,6 +92,11 @@ python -m kentaro --config examples/configs/demo.toml evidence verify --input .k
 execution. Evidence output is append-oriented and redacted, with optional hash
 chaining for tamper indication. It is not an immutable or compliance-grade audit log.
 
+Every local `ExecutionRequest` also references a versioned `RevocationPolicy`.
+This required revocation clause identifies suspension triggers and accountable future
+Maysano roles. v0.1 validates and displays its local status only; it never holds
+credentials, suspends access, submits a request, or dispatches an action.
+
 ## Planned capabilities
 
 - Workspace adapters for Codex, Claude Code, and OpenCode
