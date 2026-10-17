@@ -1,0 +1,25 @@
+# Copy to `.kentaro/workspace/config/generation.yaml` and change only this
+# one file when choosing the model used for ODPS draft generation.
+#
+# This example uses OpenAI. The key is read from the environment variable named
+# in `apiKeyEnv`; keep its value in ignored local environment configuration.
+provider: openai
+model: gpt-4.1-mini
+input: .kentaro/workspace/products/source-documents/
+output: .kentaro/workspace/products/generated/
+
+providers:
+  openai:
+    type: openai
+    model: gpt-4.1-mini
+    baseUrl: https://api.openai.com/v1
+    apiKeyEnv: OPENAI_API_KEY
+
+# For a local Ollama model, replace the selected provider block above with:
+# provider: ollama
+# model: qwen2.5:latest
+# providers:
+#   ollama:
+#     type: ollama
+#     model: qwen2.5:latest
+#     baseUrl: http://localhost:11434
