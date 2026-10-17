@@ -13,6 +13,8 @@ Product home: [maysano.com/kentaro](https://maysano.com/kentaro).
   demo with no configuration, and explicitly opt in to a read-only Maysano source.
 - [Developer guide](developer-guide.md): repository structure, contribution rules,
   tests, package build, and release checks.
+- [PyPI release automation](pypi-release.md): Trusted Publishing setup, GitHub Actions,
+  and the release procedure.
 
 ## Product and technical references
 

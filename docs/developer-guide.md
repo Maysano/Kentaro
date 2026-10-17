@@ -77,7 +77,7 @@ Before uploading a new version:
 4. Confirm no credential, customer context, local workspace file, or generated
    evidence export is staged.
 5. Build from the committed release candidate and inspect the exact `dist/` artifacts.
-6. Upload only with an authorised PyPI credential or trusted publishing workflow.
+6. Publish only through the configured [GitHub Trusted Publishing workflow](pypi-release.md).
 7. Verify the project page and install the exact published version in a clean
    environment.
 
