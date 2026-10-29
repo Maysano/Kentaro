@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from importlib.resources import files
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -14,6 +15,18 @@ def workspace_path(cwd: Path | None = None) -> Path:
     workspace = (cwd or Path.cwd()) / ".kentaro" / "workspace"
     workspace.mkdir(parents=True, exist_ok=True)
     return workspace
+
+
+def write_codex_workspace_instructions(directory: Path | None = None, *, replace: bool = False) -> Path:
+    """Create a non-overwriting Codex instruction file in a learner workspace."""
+    target = (directory or Path.cwd()).resolve() / "AGENTS.md"
+    if target.is_symlink():
+        raise ValueError("AGENTS.md is a symbolic link and will not be replaced")
+    if target.exists() and not replace:
+        raise ValueError("AGENTS.md already exists; re-run `kentaro setup codex --replace` only if you intend to replace it")
+    template = files("kentaro.resources").joinpath("codex-workspace-AGENTS.md").read_text(encoding="utf-8")
+    target.write_text(template, encoding="utf-8")
+    return target
 
 
 def timestamped_output(workspace: Path, stem: str, suffix: str) -> Path:

@@ -19,6 +19,8 @@ Product home: [maysano.com/kentaro](https://maysano.com/kentaro).
 ## Product and technical references
 
 - [Delivery plan](delivery-plan.md): v0.1 scope, exit condition, and later work.
+- [Local DesignPortfolio](design-portfolio.md): reusable v0.2 local business design capability.
+- [Masterclass Companion](masterclass-companion.md): the first packaged course scenario.
 - [Architecture](architecture.md): boundaries between Kentaro and Maysano.
 - [Governance and delivery object model](governance-and-delivery-object-model.md):
   local schemas, deterministic policy, evidence, and the required revocation clause.

@@ -1,5 +1,27 @@
 # Kentaro release notes
 
+## 0.2.0 — Local business-driven Data & AI product design (29 October 2026)
+
+Kentaro 0.2.0 adds a deterministic local `DesignPortfolio` engine for objectives, use
+cases, AI products, data products, typed relationships, canonical claims, readiness,
+reports, visual canvases, dependency manifests, and stale-output detection. It adds six
+reusable design skills and pins ODPS validation to `open-data-products==0.4.0`.
+
+Run `kentaro setup codex` in a new learner folder to add a non-overwriting, packaged
+Codex `AGENTS.md` workspace guide. It keeps the learner on the local, read-only
+DesignPortfolio path without requiring a repository checkout.
+
+The Udemy Integrated Data & AI Product Management Masterclass, including its fictional
+Customer Risk Intelligence case and bounded invalid-visibility repair exercise, is now a
+scenario package on the reusable engine. The legacy `kentaro masterclass` commands remain
+available as compatibility adapters; prior local LearningPortfolio artifacts migrate to
+DesignPortfolio when loaded or explicitly migrated.
+
+The companion remains local and read-only: it does not connect to Maysano, create
+external records, process approvals, or claim production readiness from generated
+artefacts or schema validation. The standard course flow has no hosted-model or
+local-LLM requirement.
+
 ## 0.1.0 — Initial release
 
 Kentaro 0.1.0 is the first open-source release of the read-only Agentic Maysano

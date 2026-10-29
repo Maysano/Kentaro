@@ -1,8 +1,9 @@
 # Getting started with Kentaro
 
-Kentaro v0.1 is a read-only Agentic Maysano Harness. A package installation is enough
+Kentaro v0.2 is a read-only Agentic Maysano Harness. A package installation is enough
 to retrieve and explain sourced synthetic portfolio context, create a local dashboard,
-and keep its outputs in an automatically created `.kentaro/workspace/` directory.
+or start a deterministic local business-design portfolio. Outputs stay in an
+automatically created `.kentaro/workspace/` directory.
 
 ## Install
 
@@ -11,6 +12,20 @@ Kentaro needs Python 3.11 or later.
 ```shell
 python -m pip install kentaro
 ```
+
+## Prepare a Codex workspace
+
+In an empty folder that you want to use for local Kentaro work, run:
+
+```shell
+kentaro setup codex
+```
+
+It writes a non-overwriting `AGENTS.md` file with Kentaro's local business-design
+instructions. Open that folder in Codex and describe the business problem in natural
+language. The saved DesignPortfolio and generated outputs stay beneath the folder's
+ignored `.kentaro/workspace/` directory. The command refuses to overwrite an existing
+`AGENTS.md` unless you explicitly pass `--replace`.
 
 ## Run the local synthetic demo
 
@@ -32,6 +47,21 @@ kentaro dashboard
 Both commands use the synthetic data packaged with Kentaro. The dashboard command
 creates `.kentaro/workspace/` when needed, reports the full output path, and uses a
 new timestamped filename every time.
+
+## Start a local business design
+
+v0.2 also supports a separate local `DesignPortfolio` for business objectives, use
+cases, AI products, data products, and their evidence-labelled relationships:
+
+```shell
+kentaro design init --title "Service Transformation" --portfolio-id service-transformation --output .kentaro/workspace/design/service-transformation.json
+kentaro design validate --input .kentaro/workspace/design/service-transformation.json
+```
+
+Generic design commands do not select an example. Use an explicit scenario only when wanted;
+the Udemy Masterclass remains available through its compatible `kentaro masterclass` commands.
+See [Local DesignPortfolio](design-portfolio.md) for editing, reporting, scenarios, and ODPS
+validation.
 
 ## Connect a read-only Maysano source
 

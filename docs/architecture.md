@@ -37,6 +37,17 @@ Its policy evaluator is deterministic: `allowed` means structurally in scope, ne
 permission to execute. Its evidence output is append-oriented, optionally
 hash-chained for tamper indication, and is not an immutable or compliance-grade audit.
 
+## v0.2 local business design
+
+`kentaro.design` is a separate deterministic local-design domain. Its `DesignPortfolio`
+models business objectives, use cases, AI products, data products, typed relationships, and
+versioned evidence claims. It provides validation, analysis, a local HTML canvas, readiness
+reports, deterministic manifests, and stale-output detection. It does not share the governance
+object schema and has no authority, approval, execution, or Maysano mutation semantics.
+
+Scenario packages sit above this engine. The Udemy Masterclass banking case is one such package;
+generic design commands do not select it unless a user explicitly asks for that scenario.
+
 ## Required revocation clause
 
 Every future execution-capable agent or capability requires a versioned
@@ -58,4 +69,4 @@ record bound to the request version, payload/diff digest, authority chain, ratio
 evidence, scope, timestamp, expiry, and named authority. A suspended agent must not
 resume from cached authority.
 
-The selected SDK is [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk), distributed as `open-data-products` (Apache-2.0). Its optional local drafts align with the [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/). See [integration notes](sdk-integration.md). Runtime integration and version selection remain pending; model or tool execution is outside the v0.1 boundary.
+The selected SDK is [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk), distributed as `open-data-products` (Apache-2.0). v0.2 pins local ODPS structural validation to `open-data-products==0.4.0`; its optional local drafts align with the [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/). See [integration notes](sdk-integration.md). Model or tool execution remains outside the v0.1 and v0.2 boundaries.

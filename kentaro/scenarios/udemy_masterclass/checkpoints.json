@@ -1,0 +1,11 @@
+{
+  "scenario_id": "udemy-masterclass",
+  "checkpoints": [
+    "Identify the proposed outcome and unresolved owner.",
+    "Link the risk-assessment use case to its objective.",
+    "Keep the Risk Assessment Assistant distinct from supporting data products.",
+    "Inspect dependencies, provenance, and unresolved decisions.",
+    "Validate and repair the supplied ODPS exercise.",
+    "Generate the local readiness and executive reports."
+  ]
+}

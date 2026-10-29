@@ -49,6 +49,7 @@ approval path, and contract tests.
 Run these checks from the repository root:
 
 ```bash
+python -m pip install ".[masterclass]"
 python -m unittest discover -s tests -v
 python -m compileall -q kentaro
 git diff --check
@@ -73,7 +74,7 @@ Before uploading a new version:
 
 1. Confirm the version in `pyproject.toml` has not already been published.
 2. Run the full test suite and distribution checks above.
-3. Confirm the PyPI README describes only implemented v0.1 behaviour.
+3. Confirm the PyPI README describes only implemented v0.2 behaviour.
 4. Confirm no credential, customer context, local workspace file, or generated
    evidence export is staged.
 5. Build from the committed release candidate and inspect the exact `dist/` artifacts.

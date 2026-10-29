@@ -15,6 +15,14 @@ Kentaro requires Python 3.11 or later.
 python -m pip install kentaro
 ```
 
+To prepare an empty local folder for a Codex business-design conversation, run this
+once from that folder. It creates a non-overwriting `AGENTS.md` instruction file;
+then open the folder in Codex and describe the business problem in natural language.
+
+```shell
+kentaro setup codex
+```
+
 ## Run the demo
 
 Run the complete synthetic demonstration with no account, configuration file,
@@ -40,6 +48,40 @@ kentaro dashboard
 `kentaro dashboard` always creates a fresh timestamped HTML file in
 `.kentaro/workspace/`; it never overwrites an existing dashboard.
 
+## Design a local business and product portfolio
+
+Kentaro v0.2 provides a deterministic local `DesignPortfolio` for objectives, use cases,
+AI products, data products, dependencies, evidence claims, readiness gaps, and reports. It is
+not an authoritative Maysano portfolio and never contacts a model or service in the standard path.
+
+```shell
+kentaro design init --title "Permit Service Transformation" --portfolio-id permit-service --output .kentaro/workspace/design/permit-service.json
+kentaro design add-object --input .kentaro/workspace/design/permit-service.json --id objective-speed --kind objective --name "Faster permit decisions" --purpose "Reduce avoidable delay" --owner "Service director" --lifecycle-status proposed
+kentaro design validate --input .kentaro/workspace/design/permit-service.json
+kentaro design analyze --input .kentaro/workspace/design/permit-service.json
+kentaro design report --input .kentaro/workspace/design/permit-service.json --output-dir .kentaro/workspace/design/permit-service-outputs
+```
+
+Generic commands never select a case automatically. The optional `--scenario udemy-masterclass`
+starter and the legacy `masterclass` commands explicitly select the course package.
+
+## Run the v0.2 Masterclass Companion
+
+The Integrated Data & AI Product Management Masterclass is the first scenario package for the
+reusable design capabilities. It uses a fictional Customer Risk Intelligence case, keeps AI
+products distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
+
+```shell
+python -m pip install "kentaro[masterclass]"
+kentaro masterclass init
+kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
+kentaro masterclass report --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json --output-dir .kentaro/workspace/masterclass/customer-risk-intelligence/outputs
+kentaro masterclass validate-odps --artifact kentaro/scenarios/udemy_masterclass/customer-profile.odps.yaml
+```
+
+The reports and canvas label proposed, assumed, and unknown information. SDK validation
+does not establish production readiness, business approval, compliance, or data availability.
+
 ## Connect a read-only Maysano source
 
 Live access is explicit and opt-in. Configure a Maysano-issued read-only key through
@@ -57,9 +99,9 @@ unavailable rather than inventing them.
 
 ## Safety boundary
 
-Kentaro v0.1 retrieves bounded sourced context, validates local versioned governance
-and delivery objects, generates drafts and reports, classifies proposed requests, and
-exports local evidence. It does not create external records, write to Maysano or a
+Kentaro v0.1 and v0.2 retrieve bounded sourced context, validate local versioned governance
+and learning objects, generate local drafts and reports, classify proposed requests, and
+export local evidence. They do not create external records, write to Maysano or a
 business-context graph, execute business actions, request or process approvals, or
 claim immutable or compliance-grade audit. The optional local draft commands create
 local artifacts only; a hosted provider requires explicit acknowledgement before it
@@ -104,6 +146,8 @@ Detailed material is kept out of onboarding:
 - [Getting started](https://github.com/Maysano/Kentaro/blob/main/docs/getting-started.md)
 - [Advanced configuration](https://github.com/Maysano/Kentaro/blob/main/docs/configuration.md)
 - [Local draft artifacts](https://github.com/Maysano/Kentaro/blob/main/docs/data-product-drafts.md)
+- [Local business design](https://github.com/Maysano/Kentaro/blob/main/docs/design-portfolio.md)
+- [Masterclass Companion](https://github.com/Maysano/Kentaro/blob/main/docs/masterclass-companion.md)
 - [Governance and delivery object model](https://github.com/Maysano/Kentaro/blob/main/docs/governance-and-delivery-object-model.md)
 - [Architecture](https://github.com/Maysano/Kentaro/blob/main/docs/architecture.md)
 - [Security and data boundaries](https://github.com/Maysano/Kentaro/blob/main/docs/security-and-data-boundaries.md)

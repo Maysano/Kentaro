@@ -114,6 +114,39 @@ class DefaultCliTests(unittest.TestCase):
             finally:
                 os.chdir(previous)
 
+    def test_setup_codex_writes_a_non_overwriting_workspace_instruction_file(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    self.assertEqual(main(["setup", "codex"]), 0)
+                instructions = Path(directory) / "AGENTS.md"
+                self.assertTrue(instructions.is_file())
+                self.assertIn("Kentaro local business-design workspace", instructions.read_text(encoding="utf-8"))
+                self.assertIn('"replaced": false', stdout.getvalue())
+                with redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(["setup", "codex"]), 2)
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(["setup", "codex", "--replace"]), 0)
+            finally:
+                os.chdir(previous)
+
+    def test_setup_codex_never_replaces_a_symbolic_link(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                linked_file = Path(directory) / "existing-instructions.md"
+                linked_file.write_text("keep this file", encoding="utf-8")
+                (Path(directory) / "AGENTS.md").symlink_to(linked_file)
+                with redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(["setup", "codex", "--replace"]), 2)
+                self.assertEqual(linked_file.read_text(encoding="utf-8"), "keep this file")
+            finally:
+                os.chdir(previous)
+
 
 if __name__ == "__main__":
     unittest.main()

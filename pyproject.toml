@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kentaro"
-version = "0.1.0"
-description = "Read-only Agentic Maysano Harness for sourced portfolio context and local governance validation"
+version = "0.2.0"
+description = "Read-only Agentic Maysano Harness with deterministic local business design capabilities"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 license = "MIT"
@@ -23,7 +23,8 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-odps = ["open-data-products>=0.3.4,<0.5"]
+odps = ["open-data-products==0.4.0"]
+masterclass = ["open-data-products==0.4.0"]
 
 [project.urls]
 Homepage = "https://maysano.com/kentaro"
@@ -39,4 +40,40 @@ kentaro = "kentaro.cli:main"
 include = ["kentaro*"]
 
 [tool.setuptools.package-data]
-kentaro = ["resources/*.json"]
+kentaro = ["resources/*.json", "resources/*.yaml", "resources/*.md", "scenarios/**/*.json", "scenarios/**/*.yaml", "scenarios/**/*.md"]
+
+[tool.setuptools.data-files]
+"share/kentaro/docs" = [
+    "README.md",
+    "RELEASE_NOTES.md",
+    "docs/README.md",
+    "docs/api-contract.md",
+    "docs/architecture.md",
+    "docs/configuration.md",
+    "docs/data-product-drafts.md",
+    "docs/delivery-plan.md",
+    "docs/design-portfolio.md",
+    "docs/developer-guide.md",
+    "docs/getting-started.md",
+    "docs/governance-and-delivery-object-model.md",
+    "docs/masterclass-companion.md",
+    "docs/maysano-v0.3-graph-mutation-requirements.md",
+    "docs/pypi-release.md",
+    "docs/roadmap.md",
+    "docs/sdk-integration.md",
+    "docs/security-and-data-boundaries.md",
+    "docs/user-workflows.md",
+]
+"share/kentaro/skills/kentaro-ai-product-design" = [".agents/skills/kentaro-ai-product-design/SKILL.md"]
+"share/kentaro/skills/kentaro-create-data-product" = [".agents/skills/kentaro-create-data-product/SKILL.md"]
+"share/kentaro/skills/kentaro-data-product-design" = [".agents/skills/kentaro-data-product-design/SKILL.md"]
+"share/kentaro/skills/kentaro-list-data-products" = [".agents/skills/kentaro-list-data-products/SKILL.md"]
+"share/kentaro/skills/kentaro-list-objectives" = [".agents/skills/kentaro-list-objectives/SKILL.md"]
+"share/kentaro/skills/kentaro-list-use-cases" = [".agents/skills/kentaro-list-use-cases/SKILL.md"]
+"share/kentaro/skills/kentaro-masterclass" = [".agents/skills/kentaro-masterclass/SKILL.md"]
+"share/kentaro/skills/kentaro-objective-design" = [".agents/skills/kentaro-objective-design/SKILL.md"]
+"share/kentaro/skills/kentaro-portfolio-analysis" = [".agents/skills/kentaro-portfolio-analysis/SKILL.md"]
+"share/kentaro/skills/kentaro-portfolio-brief" = [".agents/skills/kentaro-portfolio-brief/SKILL.md"]
+"share/kentaro/skills/kentaro-portfolio-dashboard" = [".agents/skills/kentaro-portfolio-dashboard/SKILL.md"]
+"share/kentaro/skills/kentaro-portfolio-readiness" = [".agents/skills/kentaro-portfolio-readiness/SKILL.md"]
+"share/kentaro/skills/kentaro-use-case-design" = [".agents/skills/kentaro-use-case-design/SKILL.md"]

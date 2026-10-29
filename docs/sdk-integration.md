@@ -43,11 +43,24 @@ contracts. They create ODPS-aligned local drafts and validate them before report
 success, or validate a specified local YAML artifact without generating anything. They
 do not create or update a Maysano record, request approval, or imply production readiness.
 
+## v0.2 Masterclass fixture
+
+The v0.2 local design capability uses one deliberately narrow, deterministic SDK integration:
+`open-data-products==0.4.0`. Its packaged Customer Profile scenario fixture is validated with
+the SDK's documented `python -m open_data_products.cli validate <artifact> --json`
+contract and is covered by an integration test. The normal course path does not run
+generation, does not require Ollama or a hosted provider, and does not contact Maysano.
+
+The pin applies to both the `odps` and `masterclass` extras until a tested compatibility policy
+replaces it. A valid
+fixture proves only that the artifact conforms to the SDK's structural validation; it is
+not evidence that data exists, can be accessed, is safe to use, or is ready for production.
+
 ## Remaining integration work
 
-1. Select an immutable upstream SDK revision for a future stable integration.
-2. Add fixture-based integration tests against that version, including generated invalid drafts.
-3. Add a formal provider-routing policy that derives egress classification from provider
+1. Add fixture-based integration tests for intentionally invalid course artifacts and the
+   bounded repair exercise.
+2. Add a formal provider-routing policy that derives egress classification from provider
    configuration rather than the explicit CLI provider choice.
-4. Keep the core portfolio briefing and dashboard runnable without the optional SDK,
+3. Keep the core portfolio briefing and dashboard runnable without the optional SDK,
    network access, or model generation.

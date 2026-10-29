@@ -1,0 +1,10 @@
+schema: https://opendataproducts.org/v4.0/schema/odps.json
+version: "4.0"
+product:
+  name: Customer Profile
+  productID: customer-profile
+  visibility: organisation
+  status: development
+  type: dataset
+  description: Synthetic course fixture for governed customer context in risk assessment.
+  valueProposition: Supports explainable customer risk assessment in the Masterclass case.

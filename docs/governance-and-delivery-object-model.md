@@ -58,6 +58,20 @@ assignment. It records the retrieval scope, source IDs, source versions, retriev
 time, freshness, and conflicts or unknowns. It is evidence of what Kentaro saw, not
 a replacement portfolio record.
 
+### Planned v0.3 task-scoped cache
+
+For an active Maysano Change Contract, v0.3 will retain the authorised graph projection in a
+managed local `ContextPackage` cache. The cache is not a second graph store or a default complete
+company-graph synchronisation. It contains only the active contract; in-scope objectives, use
+cases, data products, relationships, decisions, risks, ownership, and evidence; record IDs and
+versions or ETags; source timestamps and references; tenant/workspace and retrieval scope; cache
+creation and expiry; and a Maysano graph revision or sync cursor when available.
+
+Kentaro uses delta synchronisation only for changed in-scope records and revalidates affected
+records before submitting a future `GraphChangeSet`. The cache becomes unusable when its Change
+Contract expires or is revoked. Maysano remains authoritative for graph state, authority,
+revocation, mutation acceptance, and audit.
+
 ### Mandate
 
 A durable definition of authority and boundaries for a business area. It identifies
