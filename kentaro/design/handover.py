@@ -136,20 +136,27 @@ def _evidence_manifest(design: dict) -> dict:
     }
 
 
-def _delivery_brief(design: dict, context: dict, assessment: dict) -> str:
+def _delivery_brief(design: dict, context: dict, assessment: dict, *, package_status: str) -> str:
     names = lambda kind: ", ".join(item["claims"]["name"]["value"] for item in design["objects"] if item["kind"] == kind) or "None recorded"
     open_decisions = context["outstanding_decisions"]
+    is_suggested_review = package_status == "draft"
+    package_name = "Suggested Design Review" if is_suggested_review else "Reviewed Delivery Handover"
+    boundary = (
+        "This suggested package is ready to review and evaluate. It is a deterministic local draft derived from a DesignPortfolio; it does not request or require approval, authorize delivery, or establish production readiness."
+        if is_suggested_review else
+        "This reviewed handover is a deterministic local snapshot derived from a DesignPortfolio. It does not create or update a Maysano record, authorize delivery, or establish production readiness."
+    )
     return "\n".join((
-        f"# {design['title']} — Delivery Brief", "",
-        "## Handover boundary", "",
-        "This package is a deterministic local draft derived from a DesignPortfolio. It does not create or update a Maysano record, request approval, authorize delivery, or establish production readiness.", "",
-        "## What is being handed over", "",
+        f"# {design['title']} — {package_name}", "",
+        "## Package boundary", "",
+        boundary, "",
+        "## What to review", "",
         f"- Objectives: {names('objective')}",
         f"- Use cases: {names('use_case')}",
         f"- AI products: {names('ai_product')}",
         f"- Data products: {names('data_product')}", "",
-        "## Delivery constraints and decisions", "",
-        f"Assessment stage: `{assessment['assessment_stage']}`. The Decision Context records {len(open_decisions)} decision dependencies and {len(assessment['findings'])} unresolved finding(s). Review them with accountable humans before any implementation commitment.", "",
+        "## Review topics", "",
+        f"Assessment stage: `{assessment['assessment_stage']}`. The Decision Context records {len(open_decisions)} decision dependencies and {len(assessment['findings'])} unresolved finding(s). They are review topics, not prerequisites for receiving this package. Resolve them before any implementation commitment.", "",
         "## Specification mapping", "",
         "A review package intentionally excludes final ODPS, ODPC, and ODPG artefacts until the DesignPortfolio passes structural completion. A reviewed final ZIP contains deterministic, SDK-validated specifications. This boundary prevents unknown targets or disconnected objects from being presented as completed specifications.", "",
         "## For a coding agent", "",
@@ -157,16 +164,23 @@ def _delivery_brief(design: dict, context: dict, assessment: dict) -> str:
     ))
 
 
-def _readme(design: dict) -> str:
+def _readme(design: dict, *, package_status: str) -> str:
+    is_suggested_review = package_status == "draft"
+    package_name = "suggested design review package" if is_suggested_review else "reviewed delivery handover package"
+    opening = (
+        "This is a local, deterministic suggested package for review and evaluation. It does not need a user approval or confirmation to exist."
+        if is_suggested_review else
+        "This is a local, deterministic reviewed handover snapshot of a Kentaro DesignPortfolio."
+    )
     return "\n".join((
-        f"# {design['title']} handover package", "",
-        "This is a local, deterministic snapshot of a Kentaro DesignPortfolio.", "",
+        f"# {design['title']} — {package_name.title()}", "",
+        opening, "",
         "- `decision-context.yaml` is JSON-compatible YAML and preserves the business, product, and decision context.",
         "- `portfolio/` contains the frozen source design and its rendered canvas.",
         "- `governance/` contains provenance and deterministic readiness findings; it does not contain approvals or platform records.",
         "- `specifications/ai-products/` holds draft AI-product definitions. A review package does not include final ODPS, ODPC, or ODPG files; a structurally complete, human-confirmed final ZIP includes their deterministic, SDK-validated exports.",
         "",
-        "Regenerate a new package after the source revision or content changes. Validate the package and use handover status to detect staleness before consuming it.", "",
+        "Regenerate a new package after the source revision or content changes. Validate the package and use package status to detect staleness before consuming it.", "",
     ))
 
 
@@ -211,8 +225,8 @@ def generate_handover(
     try:
         _write(temporary / "decision-context.yaml", context)
         _write(temporary / "executive-summary.md", executive_summary(design, assessment))
-        _write(temporary / "delivery-brief.md", _delivery_brief(design, context, assessment))
-        _write(temporary / "README.md", _readme(design))
+        _write(temporary / "delivery-brief.md", _delivery_brief(design, context, assessment, package_status=package_status))
+        _write(temporary / "README.md", _readme(design, package_status=package_status))
         _write(temporary / "portfolio" / "design-portfolio.json", design)
         _write(temporary / "portfolio" / "relationships.yaml", {"serialization": "json-compatible-yaml", "relationships": design["relationships"]})
         _write(temporary / "portfolio" / "canvas.html", render_canvas(design, assessment_stage=assessment_stage))

@@ -44,9 +44,13 @@ Save the portfolio under `.kentaro/workspace/design/` with its adjacent generate
 outputs. Do not create only an empty `design init` portfolio in response to that
 business input, do not select a scenario, and do not invent a KPI, owner, system,
 policy, or AI requirement. The proposal must retain supplied facts as user-confirmed
-and label generated candidates as proposed or unknown. Read the resulting engagement
-state, show the learner what is confirmed, proposed, and unknown, then ask its single
-highest-priority business question.
+and label generated candidates as proposed or unknown. `kentaro design propose` also
+creates a local suggested design review package automatically; it is for review and
+evaluation, not a handover request and not an approval step. Use `kentaro design
+handover prepare-review` only to create equivalent material for an existing portfolio.
+Show the learner the canvas, concise package summary, and its confirmed, proposed, and
+unknown items. Do not turn its discovery gaps into a sequential approval questionnaire
+or wait for owners, KPI targets, or confirmation before producing the suggested package.
 
 If the learner explicitly asks for an empty DesignPortfolio before giving a business
 problem, use `kentaro design init` instead. If this workspace was set up during the
@@ -56,16 +60,28 @@ conversation starts.
 
 After every relevant learner input, incorporate the information as sourced claims,
 validate the saved portfolio, refresh the adjacent `engagement-state.json`, and use
-that state to identify the highest-priority missing requirement or unresolved human
-decision. Preserve confirmed claims unless the learner corrects them. Keep proposed
-and unknown claims visibly labelled. Do not infer AI involvement: conventional
-automation and non-AI use cases are valid.
+that state to identify review topics, missing requirements, and unresolved human
+decisions. Preserve confirmed claims unless the learner corrects them. Keep proposed
+and unknown claims visibly labelled. Answer the learner's immediate request before
+raising a follow-up question; do not require an answer merely to keep or review a
+suggested package. For a supported, sufficiently framed business
+pattern, compare a conventional path with a proposed human-in-the-loop AI-product
+option and two or three smaller consumer-scoped, domain- or subdomain-oriented
+information-product candidates. Do not split candidates merely by workflow step,
+screen, or report: each candidate needs a distinct business boundary, accountable
+domain owner, authoritative sources, and a reuse hypothesis to be refined. Do not
+infer that AI is required: the conventional path remains valid, and AI
+suitability, oversight, evaluation, and prohibited actions must remain proposed or
+unknown until the business user confirms them.
 
 Create locally generated ODPS, ODPC, and ODPG specifications only as supporting
 artefacts and validate ODPS with the installed pinned SDK. Generate the local,
 read-only visual canvas and reports from the saved portfolio. They show declared
 relationships, evidence labels, gaps, and dependencies; they do not establish
 business approval, data access, compliance, safety, or production readiness.
+Only `kentaro design handover generate` creates the separate final reviewed ZIP and
+requires explicit confirmation. Never request that confirmation while the learner is
+simply exploring or evaluating a suggested design package.
 
 Never send customer data, credentials, secrets, or confidential records to a hosted
 provider without explicit authorization and the required acknowledgement.

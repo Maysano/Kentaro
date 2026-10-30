@@ -2,9 +2,12 @@
 
 ## Decision Context and delivery handover
 
-`kentaro design handover prepare-review` creates local review material from a validated
-DesignPortfolio. The user reviews that material in the working process, not by an HTML approval
-button. After the user explicitly confirms the scope and acknowledges every unresolved decision,
+`kentaro design propose` automatically creates a local **suggested design review package** from a
+validated DesignPortfolio. It is immediately available for review and evaluation, including when
+the design still has unknowns and open decisions. No approval, named reviewer, or confirmation is
+needed to receive or discuss it. `kentaro design handover prepare-review` creates the same type of
+review material for an existing DesignPortfolio. After the user explicitly confirms the scope and
+acknowledges every unresolved decision,
 `kentaro design handover generate` creates a standalone ZIP. The ZIP captures its Decision
 Context, source portfolio, relationships, canvas, provenance inventory, readiness findings,
 delivery brief, and draft AI-product definitions. It does not create a Maysano record, request or
@@ -59,12 +62,25 @@ For a bounded first-pass proposal from a business owner's short problem statemen
 kentaro design propose --business-input "Our finance team spends too much time reconciling monthly reports from different systems. We want faster reporting and fewer discrepancies." --output .kentaro/workspace/design/finance.json
 ```
 
-`propose` is deterministic and supports only documented problem frames. It records the supplied
+`propose` is deterministic and supports only documented problem frames: government permit-service
+delay, finance monthly-report reconciliation, and customer risk-assessment delay. It records the supplied
 input as `user_confirmed` and every generated object, relationship, alternative, and capability as
 `proposed` or `unknown`; it never calls a model or treats a pattern as local business fact. It also
 writes the canvas, executive summary, readiness report, and unresolved-decision report beside the
 saved portfolio. When the input is too ambiguous, it writes a valid context-framing portfolio with
 one focused clarification question instead of inventing an industry or objective.
+Every recognised initial proposal also writes a suggested review package below its generated output
+directory. This package is for discussion and evaluation; its unresolved topics do not block it.
+
+Recognised patterns aim for two or three consumer-scoped, domain- or subdomain-oriented candidate
+data products rather than one unbounded catch-all product. A workflow step, screen, report, or
+worklist is not by itself a data-product boundary. Each candidate must be refined against a distinct
+business-domain boundary, accountable domain owner, authoritative sources, and reuse hypothesis.
+They also include a proposed, human-in-the-loop AI-product option alongside a non-AI alternative
+when the pattern supplies a credible bounded role. That is a design option, not an AI requirement:
+human users retain decisions and approvals, and an AI candidate
+must have explicit oversight, evaluation criteria, prohibited actions, and supporting information
+boundaries before it can progress.
 
 Add typed use-case, AI-product, and data-product relationships with `add-object` and
 `add-relationship`. `set-claim` records a sourced claim on either an object or the portfolio.
@@ -99,7 +115,7 @@ list can name each alternative, its `object_ids`, and `shared_object_ids`. The c
 the alternatives without implying that an AI product belongs to a conventional path merely because
 both paths use the same data product.
 
-The standard `kentaro==0.2.2` package includes the pinned
+The standard `kentaro==0.2.3` package includes the pinned
 `open-data-products==0.4.0` adapter to validate local ODPS artifacts. Structural validation is not business evidence, data access,
 compliance, approval, safety, or production readiness.
 

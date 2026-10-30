@@ -32,7 +32,7 @@ def _slug(value: str) -> str:
 
 def _require_sdk() -> None:
     if importlib.util.find_spec("open_data_products") is None:
-        raise ValueError('Local drafting and validation require the standard Kentaro dependency. Install with `python -m pip install --upgrade "kentaro==0.2.2"`.')
+        raise ValueError('Local drafting and validation require the standard Kentaro dependency. Install with `python -m pip install --upgrade "kentaro==0.2.3"`.')
 
 
 def _source_file(source: str | Path) -> Path:

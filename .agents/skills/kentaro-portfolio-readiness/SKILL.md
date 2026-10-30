@@ -19,10 +19,12 @@ The refresh is a complete evaluation: preserve confirmed decisions unless the
 user explicitly corrects them; validate the mandatory Design Skeleton, KPI
 targets, links, and dependencies; assess changed and impacted objects and
 relationships; flag stale outputs for reconsideration; and select the
-highest-priority unresolved topic. Answer the user's immediate request first,
-then ask the targeted next question where that advances the design. Never use a
-fixed question sequence or assume a previous output remains current after an
-input change.
+highest-priority unresolved topic. Answer the user's immediate request first.
+Do not turn discovery gaps into a mandatory sequence of questions: a proposed
+package may be generated and reviewed with unresolved topics. Ask one targeted
+next question only when the learner asks to refine the design, assess readiness,
+or choose a next design action. Never use a fixed question sequence or assume a
+previous output remains current after an input change.
 
 Do not report final completion until the state records complete objectives and
 business KPI targets, connected use cases, data products and product KPI
@@ -50,6 +52,6 @@ as decisions for accountable humans. Never claim approval, compliance, business 
 availability, safety, or production readiness from a valid schema or report.
 
 For an initial minimal-input proposal, retain unknowns as discovery-stage gaps and decisions, then
-give a concise executive summary and a prioritized next question. A valid canvas or report proves
-only that the local proposal was rendered from the saved portfolio, not that the proposal is true
-or ready to implement.
+give a concise executive summary, canvas, and suggested review package without waiting for
+confirmation. A valid canvas or report proves only that the local proposal was rendered from the
+saved portfolio, not that the proposal is true or ready to implement.

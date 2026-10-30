@@ -30,6 +30,8 @@ class DesignHandoverTests(unittest.TestCase):
             generated = prepare_handover_review(portfolio, package)
             self.assertEqual(generated["manifest"]["status"], "draft")
             self.assertTrue(validate_handover(package)["valid"])
+            self.assertIn("Suggested Design Review Package", (package / "README.md").read_text(encoding="utf-8"))
+            self.assertIn("does not request or require approval", (package / "delivery-brief.md").read_text(encoding="utf-8"))
             context = json.loads((package / "decision-context.yaml").read_text(encoding="utf-8"))
             self.assertEqual(context["model"], "DecisionContext")
             self.assertEqual(context["business_context"]["use_cases"][0]["owner"]["status"], "assumed")

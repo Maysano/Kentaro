@@ -154,7 +154,7 @@ def _parser() -> argparse.ArgumentParser:
     design_init.add_argument("--scenario", choices=("udemy-masterclass",), help="Explicit scenario starter; generic design never defaults to one")
     design_init.add_argument("--assessment-stage", default="discovery", choices=("discovery", "design", "implementation", "operation"), help="Recorded lifecycle stage; new designs default to discovery")
     design_init.add_argument("--output", required=True)
-    design_propose = design_commands.add_parser("propose", help="Create a bounded, source-labelled initial local design from minimal business input")
+    design_propose = design_commands.add_parser("propose", help="Create a bounded initial design and suggested review package from minimal business input")
     design_propose.add_argument("--business-input", required=True, help="The business owner's initial problem statement")
     design_propose.add_argument("--output", required=True, help="Local DesignPortfolio path under .kentaro/workspace/")
     design_propose.add_argument("--output-dir", help="Optional local directory for the canvas and reports")
@@ -425,13 +425,21 @@ def main(argv=None):
                 output = _workspace_output(args.output, workspace)
                 proposal = propose_design(args.business_input)
                 saved = save_portfolio(proposal["portfolio"], output)
-                state, _ = _refresh_engagement(saved)
                 destination = _workspace_output(args.output_dir, workspace) if args.output_dir else output.parent / "proposal"
                 _write_design_reports(proposal["portfolio"], destination)
+                review_package = destination / "suggested-review"
+                review = prepare_handover_review(proposal["portfolio"], review_package)
+                state, _ = _refresh_engagement(saved, delivery={
+                    "status": "suggested_review_package_generated",
+                    "source_hash": review["manifest"]["source"]["portfolio_hash"],
+                    "package": str(review["package"]),
+                    "specifications_generated": False,
+                })
                 print(json.dumps({
                     "portfolio": str(saved),
                     "engagement_state": str(state),
                     "output_dir": str(destination),
+                    "suggested_review_package": str(review["package"]),
                     "frame": proposal["frame"],
                     "clarification_questions": proposal["clarification_questions"],
                     "measurement": proposal["measurement"],

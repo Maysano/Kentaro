@@ -1,5 +1,20 @@
 # Kentaro release notes
 
+## 0.2.3 — Suggested-package business design (30 October 2026)
+
+Kentaro 0.2.3 makes the first business-design interaction review-first rather than
+approval-first. From one short business problem, `kentaro design propose` now creates
+the proposed local DesignPortfolio, business canvas and reports, plus a **Suggested
+Design Review Package**. Learners can review and evaluate that package without first
+providing every KPI, owner, source, or confirmation. Those unknowns are review topics,
+not gates to the initial proposal.
+
+Recognised customer-risk patterns now propose three domain-oriented information-product
+candidates—Customer Identity and Profile, Customer Due-Diligence Evidence, and Customer
+Risk-Assessment Case context—alongside a conventional path and a human-in-the-loop AI
+preparation option. The candidates remain proposed, never implementation approval. The
+separate final reviewed handover ZIP still requires explicit confirmation.
+
 ## 0.2.2 — Codex-first learner bootstrap (30 October 2026)
 
 Kentaro 0.2.2 makes the learner journey explicitly Codex-first after the single PyPI
