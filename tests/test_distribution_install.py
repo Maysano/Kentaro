@@ -76,13 +76,14 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertTrue((workspace / "masterclass/clean.json").is_file())
             self.assertTrue((workspace / "masterclass/customer-profile.odps.yaml").is_file())
             self.assertTrue((workspace / "masterclass/customer-profile-repair.odps.yaml").is_file())
-            site_packages = Path(self._run([str(python), "-c", "import site; print(site.getsitepackages()[0])"]).stdout.strip())
-            installed_scenario = site_packages / "kentaro" / "scenarios" / "udemy_masterclass"
+            installed_package = Path(self._run([str(python), "-c", "import kentaro; print(kentaro.__file__)"]).stdout.strip()).parent
+            installed_scenario = installed_package / "scenarios" / "udemy_masterclass"
             self.assertTrue((installed_scenario / "customer-risk-intelligence.json").is_file())
             self.assertTrue((installed_scenario / "checkpoints.json").is_file())
             self.assertTrue((installed_scenario / "README.md").is_file())
             self.assertTrue((installed_scenario / "facilitator-answer-key.md").is_file())
-            installed_share = environment / "share" / "kentaro"
+            installed_data = Path(self._run([str(python), "-c", "import sysconfig; print(sysconfig.get_path('data'))"]).stdout.strip())
+            installed_share = installed_data / "share" / "kentaro"
             self.assertTrue((installed_share / "docs" / "design-portfolio.md").is_file())
             self.assertTrue((installed_share / "docs" / "masterclass-companion.md").is_file())
             for skill in ("kentaro-objective-design", "kentaro-use-case-design", "kentaro-ai-product-design", "kentaro-data-product-design", "kentaro-portfolio-analysis", "kentaro-portfolio-readiness"):
