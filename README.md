@@ -12,8 +12,10 @@ Learn more at [maysano.com/kentaro](https://maysano.com/kentaro).
 Kentaro requires Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.6"
+python -m pip install kentaro
 ```
+
+To update an existing installation, run `python -m pip install --upgrade kentaro`.
 
 ## Start in Codex
 
@@ -93,7 +95,7 @@ standard Kentaro installation. It uses a Customer Risk Intelligence case, keeps 
 distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
 
 ```shell
-python -m pip install "kentaro==0.2.6"
+python -m pip install kentaro
 kentaro masterclass init
 kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
 kentaro masterclass report --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json --output-dir .kentaro/workspace/masterclass/customer-risk-intelligence/outputs

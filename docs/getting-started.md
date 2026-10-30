@@ -10,8 +10,10 @@ automatically created `.kentaro/workspace/` directory.
 Kentaro needs Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.6"
+python -m pip install kentaro
 ```
+
+To update an existing installation, run `python -m pip install --upgrade kentaro`.
 
 ## Prepare the workspace from Codex
 

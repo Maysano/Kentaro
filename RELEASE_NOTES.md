@@ -1,5 +1,17 @@
 # Kentaro release notes
 
+## 0.2.8 — Correct installation guidance (30 October 2026)
+
+Kentaro 0.2.8 corrects the packaged installation guidance after the 0.2.7
+release README retained obsolete `kentaro==0.2.6` commands. The README and
+installed documentation now use `python -m pip install kentaro`; update
+guidance uses `python -m pip install --upgrade kentaro`.
+
+The clean-wheel smoke test now checks the installed README for the current
+installation command and rejects stale exact-version pins. This patch changes
+documentation and package metadata only; it does not alter Kentaro's local,
+read-only behavior or approval boundaries.
+
 ## 0.2.7 — Valid AI-product graph handovers (30 October 2026)
 
 Kentaro 0.2.7 fixes final handover generation for a structurally complete
