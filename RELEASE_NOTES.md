@@ -1,5 +1,20 @@
 # Kentaro release notes
 
+## 0.2.7 — Valid AI-product graph handovers (30 October 2026)
+
+Kentaro 0.2.7 fixes final handover generation for a structurally complete
+DesignPortfolio that contains an AI product. The deterministic ODPG export now
+creates an `Agent` node for each AI product and points it to the corresponding
+local draft definition. This keeps every generated AI-product relationship
+connected to an existing graph node and allows the pinned Open Data Products SDK
+to validate the official handover ZIP.
+
+The handover regression suite now exports a reviewed ZIP with both use-case to
+AI-product and AI-product to data-product relationships, then verifies that all
+ODPG edge endpoints resolve to generated nodes. This remains a local reviewed
+handover only; it does not create a Maysano record or establish approval,
+implementation readiness, or production readiness.
+
 ## 0.2.6 — Clear Codex setup handoff (30 October 2026)
 
 Kentaro 0.2.6 makes a successful Codex-first setup understandable to a

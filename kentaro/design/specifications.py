@@ -111,6 +111,7 @@ def build_specifications(portfolio: dict, destination: str | Path) -> dict:
     design = validate_portfolio(portfolio)["portfolio"]
     root = Path(destination)
     products = [item for item in design["objects"] if item["kind"] == "data_product"]
+    ai_products = [item for item in design["objects"] if item["kind"] == "ai_product"]
     objectives = [item for item in design["objects"] if item["kind"] == "objective"]
     use_cases = [item for item in design["objects"] if item["kind"] == "use_case"]
     product_refs = []
@@ -132,6 +133,7 @@ def build_specifications(portfolio: dict, destination: str | Path) -> dict:
     nodes = []
     for item in objectives: nodes.extend(({"id": item["id"], "type": "BusinessObjective", "$ref": f"odpc.yaml#/catalog/businessObjectives/{item['id']}"}, {"id": f"kpi-{item['id']}", "type": "KPI", "$ref": f"odpc.yaml#/catalog/businessObjectives/{item['id']}/kpis/0"}))
     for item in use_cases: nodes.append({"id": item["id"], "type": "UseCase", "$ref": f"odpc.yaml#/catalog/useCases/{item['id']}"})
+    for item in ai_products: nodes.append({"id": item["id"], "type": "Agent", "$ref": f"ai-products/{item['id']}.json"})
     for item in products:
         nodes.extend(({"id": item["id"], "type": "DataProduct", "$ref": f"data-products/{item['id']}.odps.yaml"}, {"id": f"kpi-{item['id']}", "type": "KPI", "$ref": f"#product-kpi:{item['id']}"}))
     edges = []

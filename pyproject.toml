@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kentaro"
-version = "0.2.6"
+version = "0.2.7"
 description = "Read-only Agentic Maysano Harness with deterministic local business design capabilities"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"

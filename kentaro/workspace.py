@@ -76,7 +76,7 @@ def packaged_skills_root() -> Path:
         return installed_root
     raise FileNotFoundError(
         "Kentaro's packaged skills are unavailable. Reinstall with "
-        '`python -m pip install --upgrade "kentaro==0.2.4"`.'
+        '`python -m pip install --upgrade kentaro`.'
     )
 
 

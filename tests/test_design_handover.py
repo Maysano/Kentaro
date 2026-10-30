@@ -23,6 +23,18 @@ class DesignHandoverTests(unittest.TestCase):
         portfolio = add_relationship(portfolio, "supports", "use-case", "objective", "use-case-supports-objective")
         return add_relationship(portfolio, "needs-data", "use-case", "data-product", "use-case-requires-data-product")
 
+    def _complete_portfolio_with_ai_product(self):
+        claim = lambda value: make_claim(value, "proposed", "workshop", "v1", "complete-ai-design", asserted_at="2026-10-25T00:00:00+00:00")
+        portfolio = self._complete_portfolio()
+        portfolio = add_object(portfolio, "ai-review", "ai_product", {
+            "name": claim("Review assistant"),
+            "purpose": claim("Prepares evidence for a human reviewer"),
+            "owner": claim("Service team"),
+            "lifecycle_status": claim("discovery"),
+        })
+        portfolio = add_relationship(portfolio, "delivered-by-ai", "use-case", "ai-review", "use-case-delivered-by-ai-product")
+        return add_relationship(portfolio, "ai-uses-data", "ai-review", "data-product", "ai-product-consumes-data-product")
+
     def test_banking_handover_preserves_claim_state_and_marks_contracts_unsupported(self):
         portfolio = starting_portfolio()
         with TemporaryDirectory() as directory:
@@ -86,6 +98,24 @@ class DesignHandoverTests(unittest.TestCase):
             with zipfile.ZipFile(package) as archive:
                 self.assertIn("specifications/odpc.yaml", archive.namelist())
                 self.assertIn("specifications/odpg.yaml", archive.namelist())
+
+    def test_final_zip_includes_ai_product_graph_nodes_for_every_ai_relationship(self):
+        with TemporaryDirectory() as directory:
+            package = Path(directory) / "handover.zip"
+            exported = export_handover(
+                self._complete_portfolio_with_ai_product(),
+                package,
+                reviewer="Jarkko",
+                confirmation="I confirm this reviewed handover is ready for its intended builder.",
+                acknowledge_all_open_decisions=True,
+            )
+            self.assertEqual(exported["manifest"]["status"], "reviewed")
+            self.assertTrue(validate_handover(package)["valid"])
+            with zipfile.ZipFile(package) as archive:
+                graph = json.loads(archive.read("specifications/odpg.yaml"))
+            nodes = {node["id"]: node for node in graph["graph"]["nodes"]}
+            self.assertEqual(nodes["ai-review"], {"id": "ai-review", "type": "Agent", "$ref": "ai-products/ai-review.json"})
+            self.assertTrue(all(edge["from"] in nodes and edge["to"] in nodes for edge in graph["graph"]["edges"]))
 
     def test_cli_prepares_review_then_generates_confirmed_workspace_zip(self):
         with TemporaryDirectory() as directory:
