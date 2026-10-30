@@ -1,5 +1,16 @@
 # Kentaro release notes
 
+## 0.2.5 — Branded business-design canvas (30 October 2026)
+
+Kentaro 0.2.5 refines the local, read-only business-design canvas into a more
+focused Maysano workspace. The relationship map remains the default review view;
+it now has an offline Maysano header using the packaged brand mark, a legible
+wordmark, and business-focused navigation rather than a competing Kentaro lockup.
+
+The canvas is still generated entirely from the saved local DesignPortfolio. It
+does not load branding, styles, or portfolio content from the network, and it
+does not change the approval, governance, or production-readiness boundaries.
+
 ## 0.2.4 — Live canvas companion (30 October 2026)
 
 Kentaro 0.2.4 makes the visual canvas the default companion to a business-design

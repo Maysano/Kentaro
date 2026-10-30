@@ -74,6 +74,31 @@ class MinimalInputProposalTests(unittest.TestCase):
         self.assertNotIn("Input hash", canvas)
         self.assertNotIn("Declared objects", canvas)
 
+    def test_canvas_is_a_self_contained_business_review_workspace(self):
+        canvas = render_canvas(propose_design("Our bank's customer risk assessments take too long. Help me improve this process.")["portfolio"])
+
+        self.assertIn("https://cal.com/maysanoplatform/30min", canvas)
+        self.assertIn('data:image/png;base64,', canvas)
+        self.assertIn('class="brand-symbol"', canvas)
+        self.assertIn('class="brand-wordmark"', canvas)
+        self.assertNotIn('class="brand-mark"', canvas)
+        self.assertNotIn('class="kentaro-word"', canvas)
+        self.assertIn("Book a Demo", canvas)
+        self.assertIn("Business design canvas", canvas)
+        self.assertIn("Business objectives", canvas)
+        self.assertIn("Business use cases", canvas)
+        self.assertIn("Reusable products", canvas)
+        self.assertIn("Expected outcomes", canvas)
+        self.assertIn("View as list", canvas)
+        self.assertIn("Fit diagram to view", canvas)
+        self.assertIn("Reset diagram zoom and pan", canvas)
+        self.assertIn("Focus view", canvas)
+        self.assertIn("selected-detail", canvas)
+        self.assertIn("Supporting specifications, including generated ODPS-family artifacts", canvas)
+        self.assertIn("does not establish access, approval, compliance, or production readiness", canvas)
+        self.assertNotIn("<link rel=\"stylesheet\"", canvas)
+        self.assertNotIn('role="tablist"', canvas)
+
     def test_c_finance_input_proposes_smaller_information_products_and_a_human_controlled_ai_option(self):
         result = propose_design("Our finance team spends too much time reconciling monthly reports from different systems. We want faster reporting and fewer discrepancies.")
         kinds = [item["kind"] for item in result["portfolio"]["objects"]]

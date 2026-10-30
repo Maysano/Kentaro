@@ -55,7 +55,7 @@ class DesignPortfolioTests(unittest.TestCase):
                 self.assertIn("Digital permit submission", canvas)
                 self.assertIn("Business summary", canvas)
                 self.assertIn("Needs information", canvas)
-                self.assertIn("Supporting specifications and evidence", canvas)
+                self.assertIn("Supporting specifications held separately", canvas)
                 self.assertIn("Conventional automation", canvas)
                 self.assertNotIn("Customer Risk", canvas)
                 outputs = root / ".kentaro/workspace/design/outputs"

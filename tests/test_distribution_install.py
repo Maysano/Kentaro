@@ -72,7 +72,9 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertEqual(len(installed_skills), 13)
             self.assertTrue(all(skill.read_text(encoding="utf-8").startswith("---") for skill in installed_skills))
             self.assertIn('"model": "DesignPortfolio"', design.stdout)
-            self.assertTrue((working_directory / ".kentaro/workspace/design/clean-canvas.html").is_file())
+            rendered_canvas = working_directory / ".kentaro/workspace/design/clean-canvas.html"
+            self.assertTrue(rendered_canvas.is_file())
+            self.assertIn("data:image/png;base64,", rendered_canvas.read_text(encoding="utf-8"))
             self.assertIn('"maysano_connection": false', masterclass.stdout)
             self.assertIn('"valid": true', odps.stdout)
             self.assertTrue((workspace / "design/clean.json").is_file())
@@ -81,6 +83,7 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertTrue((workspace / "masterclass/customer-profile-repair.odps.yaml").is_file())
             installed_package = Path(self._run([str(python), "-c", "import kentaro; print(kentaro.__file__)"]).stdout.strip()).parent
             installed_scenario = installed_package / "scenarios" / "udemy_masterclass"
+            self.assertTrue((installed_package / "assets" / "maysano-logo.png").is_file())
             self.assertTrue((installed_scenario / "customer-risk-intelligence.json").is_file())
             self.assertTrue((installed_scenario / "checkpoints.json").is_file())
             self.assertTrue((installed_scenario / "README.md").is_file())

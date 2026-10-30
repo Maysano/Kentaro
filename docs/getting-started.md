@@ -10,7 +10,7 @@ automatically created `.kentaro/workspace/` directory.
 Kentaro needs Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.4"
+python -m pip install "kentaro==0.2.5"
 ```
 
 ## Prepare the workspace from Codex
