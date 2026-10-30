@@ -60,7 +60,7 @@ class DistributionInstallTests(unittest.TestCase):
             workspace = working_directory / ".kentaro" / "workspace"
             self.assertTrue(workspace.is_dir())
             self.assertTrue(dashboard_path.is_file())
-            self.assertTrue(dashboard_path.is_relative_to(workspace.resolve()))
+            self.assertTrue(os.path.samefile(dashboard_path.parent, workspace))
             self.assertGreaterEqual(len(list(workspace.glob("portfolio-dashboard-*.html"))), 2)
             self.assertIn('"codex_instructions"', codex_setup.stdout)
             self.assertIn('"valid": true', doctor.stdout)
