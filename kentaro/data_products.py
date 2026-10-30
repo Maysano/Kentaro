@@ -1,4 +1,4 @@
-"""Local-only ODPS draft generation and validation through an optional SDK."""
+"""Local-only ODPS draft generation and validation through Kentaro's pinned SDK."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -32,7 +32,7 @@ def _slug(value: str) -> str:
 
 def _require_sdk() -> None:
     if importlib.util.find_spec("open_data_products") is None:
-        raise ValueError('Local drafting and validation require the optional dependency. Install with `python -m pip install "kentaro[odps]"`.')
+        raise ValueError('Local drafting and validation require the standard Kentaro dependency. Install with `python -m pip install --upgrade "kentaro==0.2.1"`.')
 
 
 def _source_file(source: str | Path) -> Path:

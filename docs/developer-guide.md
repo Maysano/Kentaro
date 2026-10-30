@@ -49,7 +49,7 @@ approval path, and contract tests.
 Run these checks from the repository root:
 
 ```bash
-python -m pip install ".[masterclass]"
+python -m pip install .
 python -m unittest discover -s tests -v
 python -m compileall -q kentaro
 git diff --check

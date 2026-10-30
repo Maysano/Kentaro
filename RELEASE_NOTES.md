@@ -1,5 +1,23 @@
 # Kentaro release notes
 
+## 0.2.1 — Self-contained Codex workspace installation (30 October 2026)
+
+Kentaro 0.2.1 makes the standard PyPI installation self-contained for the local
+business-design workflow. `kentaro setup codex` now installs the complete set of 13
+Kentaro Codex skills and a managed workspace guide without requiring a repository
+checkout. It preserves learner-authored instructions and skill changes unless the
+learner explicitly chooses replacement.
+
+`kentaro doctor` verifies the installed package, pinned ODPS validation dependency,
+workspace structure, managed `AGENTS.md`, all skills, DesignPortfolio readiness, and
+visual-canvas rendering, with actionable repair guidance. The standard package now
+always includes `open-data-products==0.4.0`; there is no separate Masterclass extra.
+
+The wheel is exercised in a clean virtual environment after installation, including
+workspace setup, DesignPortfolio initiation, engagement refresh, canvas rendering,
+and ODPS validation without access to the source checkout. CI adds macOS and Windows
+installed-wheel smoke-test jobs.
+
 ## 0.2.0 — Local business-driven Data & AI product design (29 October 2026)
 
 Kentaro 0.2.0 adds a deterministic local `DesignPortfolio` engine for objectives, use
@@ -66,8 +84,8 @@ existing dashboard.
   kentaro configure maysano
   kentaro portfolio brief --source maysano
   ```
-- Optional data-product, use-case, and objective draft generation and validation from
-  Markdown or text using `kentaro[odps]`, aligned with the [Open Data Products (ODPS)
+- Standard data-product, use-case, and objective draft generation and validation from
+  Markdown or text using the bundled `open-data-products==0.4.0` dependency, aligned with the [Open Data Products (ODPS)
   family of specifications](https://opendataproducts.org/). Local Ollama is the
   default; hosted generation requires an explicit provider configuration and
   `--allow-hosted-content` acknowledgement.

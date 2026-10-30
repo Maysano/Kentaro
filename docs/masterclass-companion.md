@@ -9,11 +9,11 @@ business-case approval process, data-access mechanism, or production-readiness a
 
 ## Start the fictional case
 
-Install the pinned course dependency, initialise the Customer Risk Intelligence case,
-and validate the resulting local `DesignPortfolio`:
+Kentaro's standard installation already includes the pinned ODPS validation dependency.
+Initialise the Customer Risk Intelligence case and validate the resulting local
+`DesignPortfolio`:
 
 ```shell
-python -m pip install "kentaro[masterclass]"
 kentaro masterclass init
 kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
 ```

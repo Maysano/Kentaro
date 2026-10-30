@@ -12,15 +12,19 @@ Learn more at [maysano.com/kentaro](https://maysano.com/kentaro).
 Kentaro requires Python 3.11 or later.
 
 ```shell
-python -m pip install kentaro
+python -m pip install "kentaro==0.2.1"
 ```
 
 To prepare an empty local folder for a Codex business-design conversation, run this
-once from that folder. It creates a non-overwriting `AGENTS.md` instruction file;
-then open the folder in Codex and describe the business problem in natural language.
+once from that folder. It installs Kentaro's 13 Codex skills in `.agents/skills/`,
+adds a bounded managed section to `AGENTS.md`, and creates the local workspace.
+Existing user instructions and changed skills are preserved; `--replace` is required
+to replace changed Kentaro-managed content. Then open the folder in Codex and
+describe the business problem in natural language.
 
 ```shell
 kentaro setup codex
+kentaro doctor
 ```
 
 ## Run the demo
@@ -65,18 +69,18 @@ kentaro design report --input .kentaro/workspace/design/permit-service.json --ou
 Generic commands never select a case automatically. The optional `--scenario udemy-masterclass`
 starter and the legacy `masterclass` commands explicitly select the course package.
 
-## Run the v0.2 Masterclass Companion
+## Run the fictional Masterclass scenario
 
-The Integrated Data & AI Product Management Masterclass is the first scenario package for the
-reusable design capabilities. It uses a fictional Customer Risk Intelligence case, keeps AI
-products distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
+The Integrated Data & AI Product Management Masterclass is a fictional scenario on the same
+standard Kentaro installation. It uses a Customer Risk Intelligence case, keeps AI products
+distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
 
 ```shell
-python -m pip install "kentaro[masterclass]"
+python -m pip install "kentaro==0.2.1"
 kentaro masterclass init
 kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
 kentaro masterclass report --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json --output-dir .kentaro/workspace/masterclass/customer-risk-intelligence/outputs
-kentaro masterclass validate-odps --artifact kentaro/scenarios/udemy_masterclass/customer-profile.odps.yaml
+kentaro masterclass validate-odps --artifact .kentaro/workspace/masterclass/customer-risk-intelligence/customer-profile.odps.yaml
 ```
 
 The reports and canvas label proposed, assumed, and unknown information. SDK validation
@@ -119,11 +123,10 @@ custom API endpoints or workspace paths, model declarations, organisation polici
 and non-default profiles. They are never needed for the normal local experience.
 
 To create proposed local data-product, use-case, or objective drafts from Markdown or
-text, install the optional SDK integration. These local artifacts align with the
+text, use the SDK included in the standard installation. These local artifacts align with the
 [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/):
 
 ```shell
-python -m pip install "kentaro[odps]"
 kentaro data-product draft ./business-context.md
 kentaro use-case draft ./business-context.md
 kentaro objective draft ./business-context.md

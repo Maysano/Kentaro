@@ -47,7 +47,8 @@ from kentaro.workspace import (
     maysano_environment_path,
     timestamped_output,
     workspace_path,
-    write_codex_workspace_instructions,
+    codex_workspace_doctor,
+    install_codex_workspace,
     write_maysano_setup,
 )
 
@@ -79,8 +80,9 @@ def _parser() -> argparse.ArgumentParser:
 
     setup = commands.add_parser("setup", help="Prepare a local learner workspace")
     setup_commands = setup.add_subparsers(dest="setup_command", required=True)
-    codex_setup = setup_commands.add_parser("codex", help="Write non-overwriting Codex instructions to this workspace")
-    codex_setup.add_argument("--replace", action="store_true", help="Explicitly replace an existing workspace AGENTS.md")
+    codex_setup = setup_commands.add_parser("codex", help="Install Kentaro instructions and skills for Codex in this workspace")
+    codex_setup.add_argument("--replace", action="store_true", help="Explicitly replace modified Kentaro-managed instructions or skills, preserving other user files")
+    commands.add_parser("doctor", help="Check Kentaro, Codex workspace setup, skills, and ODPS validation readiness")
 
     for artifact_type, command_name, plural_name in (
         ("data-product", "data-product", "data-product"),
@@ -377,8 +379,13 @@ def main(argv=None):
         elif args.command == "configure":
             _configure_maysano(args, workspace)
         elif args.command == "setup":
-            instructions = write_codex_workspace_instructions(replace=args.replace)
-            print(json.dumps({"codex_instructions": str(instructions), "workspace": str(workspace), "replaced": args.replace}, sort_keys=True))
+            result = install_codex_workspace(replace=args.replace)
+            print(json.dumps({**result, "workspace": str(workspace)}, sort_keys=True))
+        elif args.command == "doctor":
+            result = codex_workspace_doctor()
+            print(json.dumps(result, sort_keys=True))
+            if not result["valid"]:
+                return 2
         elif args.command == "masterclass":
             if args.masterclass_command == "init":
                 output = _workspace_output(args.output, workspace) if args.output else workspace / "masterclass" / "customer-risk-intelligence" / "portfolio.json"

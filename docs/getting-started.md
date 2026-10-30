@@ -10,7 +10,7 @@ automatically created `.kentaro/workspace/` directory.
 Kentaro needs Python 3.11 or later.
 
 ```shell
-python -m pip install kentaro
+python -m pip install "kentaro==0.2.1"
 ```
 
 ## Prepare a Codex workspace
@@ -21,11 +21,23 @@ In an empty folder that you want to use for local Kentaro work, run:
 kentaro setup codex
 ```
 
-It writes a non-overwriting `AGENTS.md` file with Kentaro's local business-design
-instructions. Open that folder in Codex and describe the business problem in natural
-language. The saved DesignPortfolio and generated outputs stay beneath the folder's
-ignored `.kentaro/workspace/` directory. The command refuses to overwrite an existing
-`AGENTS.md` unless you explicitly pass `--replace`.
+It installs all 13 Kentaro skills in Codex's workspace `.agents/skills/` discovery
+directory and adds a managed Kentaro section to `AGENTS.md`. Existing learner
+instructions remain in place. A later run is safe: unchanged files are reused and
+learner changes are preserved. Use `--replace` only when you explicitly want to
+replace changed Kentaro-managed instructions or skills. Open that folder in Codex and
+describe the business problem in natural language. The saved DesignPortfolio and
+generated outputs stay beneath the folder's ignored `.kentaro/workspace/` directory.
+
+Confirm the workspace before opening Codex:
+
+```shell
+kentaro doctor
+```
+
+`doctor` checks the installed Kentaro version, local workspace, managed instructions,
+all 13 skills, and the pinned ODPS validator. It prints a specific fix for anything
+that is missing.
 
 ## Run the local synthetic demo
 

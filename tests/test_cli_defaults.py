@@ -1,4 +1,5 @@
 import io
+import json
 import os
 from contextlib import redirect_stderr, redirect_stdout
 from datetime import datetime, timezone
@@ -114,7 +115,7 @@ class DefaultCliTests(unittest.TestCase):
             finally:
                 os.chdir(previous)
 
-    def test_setup_codex_writes_a_non_overwriting_workspace_instruction_file(self):
+    def test_setup_codex_installs_all_skills_and_is_idempotent(self):
         with TemporaryDirectory() as directory:
             previous = Path.cwd()
             os.chdir(directory)
@@ -126,10 +127,60 @@ class DefaultCliTests(unittest.TestCase):
                 self.assertTrue(instructions.is_file())
                 self.assertIn("Kentaro local business-design workspace", instructions.read_text(encoding="utf-8"))
                 self.assertIn('"replaced": false', stdout.getvalue())
-                with redirect_stderr(io.StringIO()):
-                    self.assertEqual(main(["setup", "codex"]), 2)
+                skills = Path(directory) / ".agents" / "skills"
+                self.assertEqual(len(list(skills.glob("*/SKILL.md"))), 13)
+                repeated = io.StringIO()
+                with redirect_stdout(repeated):
+                    self.assertEqual(main(["setup", "codex"]), 0)
+                self.assertIn('"instruction_status": "reused"', repeated.getvalue())
+                self.assertIn('"reused": 1', repeated.getvalue())
+            finally:
+                os.chdir(previous)
+
+    def test_setup_codex_preserves_existing_instructions_and_changed_skill_without_replace(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                instructions = Path(directory) / "AGENTS.md"
+                instructions.write_text("# My team instructions\nKeep our review rule.\n", encoding="utf-8")
+                self.assertEqual(main(["setup", "codex"]), 0)
+                self.assertIn("Keep our review rule.", instructions.read_text(encoding="utf-8"))
+                skill = Path(directory) / ".agents" / "skills" / "kentaro-objective-design" / "SKILL.md"
+                skill.write_text("# Learner change\n", encoding="utf-8")
+                stdout = io.StringIO()
+                with redirect_stdout(stdout):
+                    self.assertEqual(main(["setup", "codex"]), 0)
+                self.assertEqual(skill.read_text(encoding="utf-8"), "# Learner change\n")
+                self.assertIn('"preserved_modified": 1', stdout.getvalue())
                 with redirect_stdout(io.StringIO()):
                     self.assertEqual(main(["setup", "codex", "--replace"]), 0)
+                self.assertIn("# Kentaro Business Objective Design", skill.read_text(encoding="utf-8"))
+            finally:
+                os.chdir(previous)
+
+    def test_doctor_reports_actionable_setup_and_odps_results(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                missing = io.StringIO()
+                with redirect_stdout(missing), redirect_stderr(io.StringIO()):
+                    self.assertEqual(main(["doctor"]), 2)
+                missing_result = json.loads(missing.getvalue())
+                self.assertFalse(missing_result["valid"])
+                self.assertTrue(missing_result["fixes"])
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(["setup", "codex"]), 0)
+                healthy = io.StringIO()
+                with redirect_stdout(healthy):
+                    self.assertEqual(main(["doctor"]), 0)
+                result = json.loads(healthy.getvalue())
+                self.assertTrue(result["valid"])
+                skills = next(check for check in result["checks"] if check["name"] == "kentaro_skills")
+                self.assertEqual(skills["detail"], "13/13 installed")
+                self.assertEqual(next(check for check in result["checks"] if check["name"] == "design_portfolio")["status"], "not_started")
+                self.assertEqual(next(check for check in result["checks"] if check["name"] == "visual_canvas")["status"], "ok")
             finally:
                 os.chdir(previous)
 

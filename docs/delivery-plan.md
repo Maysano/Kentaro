@@ -112,7 +112,7 @@ is a starting point for local instances; it never creates a product, objective,
 use case, or other record in Maysano.
 
 The `data-product`, `use-case`, and `objective` draft and validate commands are optional
-`kentaro[odps]` integrations. They can invoke the ODPS SDK to generate and validate
+Kentaro's standard ODPS integration. It can invoke the ODPS SDK to generate and validate
 local proposed artifacts aligned with the [Open Data Products (ODPS) family of
 specifications](https://opendataproducts.org/) from Markdown or text. The default
 provider is local Ollama. A hosted provider requires an explicit configuration and user

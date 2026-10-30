@@ -4,7 +4,7 @@ Selected by the project owner: [Open-Data-Product-Initiative/odp-agent-sdk](http
 Upstream README and packaging metadata checked on 2026-10-15.
 
 Kentaro uses the [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/)
-as the semantic basis for its optional local data-product, use-case, and objective
+as the semantic basis for its local data-product, use-case, and objective
 draft artifacts. The SDK supplies generation and validation capabilities; ODPS
 alignment does not make a local artifact authoritative or grant Maysano write access.
 
@@ -23,10 +23,9 @@ Start with standards-document inspection and validation: upstream documents `val
 must not become another authoritative portfolio store. The upstream SDK also exposes generation
 and MCP capabilities; selecting this dependency does not enable those capabilities in Kentaro.
 
-Kentaro exposes a narrow optional CLI integration:
+Kentaro exposes a narrow standard CLI integration:
 
 ```shell
-python -m pip install "kentaro[odps]"
 kentaro data-product draft ./business-context.md
 kentaro use-case draft ./business-context.md
 kentaro objective draft ./business-context.md
@@ -51,8 +50,7 @@ the SDK's documented `python -m open_data_products.cli validate <artifact> --jso
 contract and is covered by an integration test. The normal course path does not run
 generation, does not require Ollama or a hosted provider, and does not contact Maysano.
 
-The pin applies to both the `odps` and `masterclass` extras until a tested compatibility policy
-replaces it. A valid
+The pin is a standard Kentaro runtime dependency. A valid
 fixture proves only that the artifact conforms to the SDK's structural validation; it is
 not evidence that data exists, can be accessed, is safe to use, or is ready for production.
 
@@ -62,5 +60,5 @@ not evidence that data exists, can be accessed, is safe to use, or is ready for 
    bounded repair exercise.
 2. Add a formal provider-routing policy that derives egress classification from provider
    configuration rather than the explicit CLI provider choice.
-3. Keep the core portfolio briefing and dashboard runnable without the optional SDK,
-   network access, or model generation.
+3. Keep the core portfolio briefing and dashboard runnable without network access or
+   model generation.

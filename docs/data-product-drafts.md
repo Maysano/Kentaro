@@ -2,19 +2,15 @@
 
 Kentaro can create and validate proposed data-product, use-case, and objective
 artifacts from a Markdown or text source. They align with the [Open Data Products
-(ODPS) family of specifications](https://opendataproducts.org/). This is an optional
-local drafting workflow. It does not create a Maysano record, update a portfolio,
+(ODPS) family of specifications](https://opendataproducts.org/). This local drafting
+workflow does not create a Maysano record, update a portfolio,
 request approval, or establish ownership, legal clearance, data availability, or
 production readiness.
 
-## Install the optional integration
+## Standard installation
 
-The default Kentaro installation has no runtime dependencies and does not include the
-ODPS SDK. Install the optional integration only for draft generation:
-
-```shell
-python -m pip install "kentaro[odps]"
-```
+The standard `kentaro==0.2.1` installation includes the pinned ODPS SDK required for
+local draft generation and validation. No optional installation variant is needed.
 
 ## Generate a local draft
 

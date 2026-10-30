@@ -99,8 +99,8 @@ list can name each alternative, its `object_ids`, and `shared_object_ids`. The c
 the alternatives without implying that an AI product belongs to a conventional path merely because
 both paths use the same data product.
 
-Install `kentaro[odps]` to validate a local ODPS artifact through the pinned
-`open-data-products==0.4.0` adapter. Structural validation is not business evidence, data access,
+The standard `kentaro==0.2.1` package includes the pinned
+`open-data-products==0.4.0` adapter to validate local ODPS artifacts. Structural validation is not business evidence, data access,
 compliance, approval, safety, or production readiness.
 
 The wheel also carries the Kentaro documentation and agent skill instructions under its
