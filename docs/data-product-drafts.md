@@ -9,7 +9,7 @@ production readiness.
 
 ## Standard installation
 
-The standard `kentaro==0.2.3` installation includes the pinned ODPS SDK required for
+The standard `kentaro==0.2.4` installation includes the pinned ODPS SDK required for
 local draft generation and validation. No optional installation variant is needed.
 
 ## Generate a local draft

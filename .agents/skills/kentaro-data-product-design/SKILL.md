@@ -28,3 +28,7 @@ the data product or technical architecture before presenting the first connected
 Use `kentaro design validate-odps --artifact <file>` for structural ODPS validation. The adapter
 uses the pinned SDK version and does not establish access, data quality, compliance, safety, or
 production readiness. Keep generated local design artifacts under `.kentaro/workspace/`.
+
+When this changes an existing design, regenerate its adjacent visual canvas and refresh or reopen
+it beside the Codex conversation. The learner should see the information-product boundary without
+having to request the canvas again.

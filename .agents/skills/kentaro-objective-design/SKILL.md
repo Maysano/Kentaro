@@ -20,4 +20,8 @@ Create or update objectives with `kentaro design init`, `add-object`, and `set-c
 `kentaro design validate`. Keep measurable outcome fields as canonical Claims, including nested
 baseline and target claims when they have different evidence.
 
+When this changes an existing design, regenerate its adjacent visual canvas and refresh or reopen
+it beside the Codex conversation. The learner should see the updated business target without
+having to request the canvas again.
+
 This is local design work only. It does not update Maysano, request approval, or grant authority.

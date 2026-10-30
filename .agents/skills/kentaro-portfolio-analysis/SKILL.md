@@ -30,3 +30,6 @@ object count with a useful portfolio.
 When a relationship is semantically invalid, correct the local design with the supported typed
 predicate rather than inventing a new relationship meaning. Do not read or change Maysano unless
 the user separately requests and configures a read-only workflow.
+
+When analysis results in a material design change, regenerate its adjacent visual canvas and
+refresh or reopen it beside the Codex conversation so the learner is not reviewing a stale view.

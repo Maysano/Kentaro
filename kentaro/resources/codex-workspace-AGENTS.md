@@ -48,9 +48,11 @@ and label generated candidates as proposed or unknown. `kentaro design propose` 
 creates a local suggested design review package automatically; it is for review and
 evaluation, not a handover request and not an approval step. Use `kentaro design
 handover prepare-review` only to create equivalent material for an existing portfolio.
-Show the learner the canvas, concise package summary, and its confirmed, proposed, and
-unknown items. Do not turn its discovery gaps into a sequential approval questionnaire
-or wait for owners, KPI targets, or confirmation before producing the suggested package.
+Open the visual canvas in Codex beside the conversation as the default companion to the
+first proposal; do not merely provide a file link and leave the learner to open it. Show
+the learner the canvas, concise package summary, and its confirmed, proposed, and unknown
+items. Do not turn its discovery gaps into a sequential approval questionnaire or wait for
+owners, KPI targets, or confirmation before producing the suggested package.
 
 If the learner explicitly asks for an empty DesignPortfolio before giving a business
 problem, use `kentaro design init` instead. If this workspace was set up during the
@@ -64,7 +66,10 @@ that state to identify review topics, missing requirements, and unresolved human
 decisions. Preserve confirmed claims unless the learner corrects them. Keep proposed
 and unknown claims visibly labelled. Answer the learner's immediate request before
 raising a follow-up question; do not require an answer merely to keep or review a
-suggested package. For a supported, sufficiently framed business
+suggested package. After a material design update, regenerate the adjacent visual canvas
+from the saved portfolio, then refresh or reopen that same canvas in Codex beside the
+conversation. Treat the visual view as a live, read-only companion: it must visibly
+reflect the latest saved design, rather than a stale first-draft snapshot. For a supported, sufficiently framed business
 pattern, compare a conventional path with a proposed human-in-the-loop AI-product
 option and two or three smaller consumer-scoped, domain- or subdomain-oriented
 information-product candidates. Do not split candidates merely by workflow step,

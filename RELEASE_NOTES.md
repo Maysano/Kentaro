@@ -1,5 +1,19 @@
 # Kentaro release notes
 
+## 0.2.4 — Live canvas companion (30 October 2026)
+
+Kentaro 0.2.4 makes the visual canvas the default companion to a business-design
+conversation. Codex opens the first proposed design beside the conversation rather
+than leaving the learner with a file link. When a material change is saved, Kentaro
+regenerates and refreshes that same local read-only canvas so the visual view and
+the DesignPortfolio remain aligned.
+
+The packaged workspace guidance and the objective, use-case, AI-product,
+data-product, analysis, and readiness skills all carry that rule. An untouched
+Kentaro 0.2.3 managed `AGENTS.md` block upgrades safely on the next
+`kentaro setup codex`; learner-modified instructions and skills remain protected
+unless they explicitly choose replacement.
+
 ## 0.2.3 — Suggested-package business design (30 October 2026)
 
 Kentaro 0.2.3 makes the first business-design interaction review-first rather than

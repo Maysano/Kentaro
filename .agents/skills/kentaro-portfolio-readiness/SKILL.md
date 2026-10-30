@@ -37,6 +37,12 @@ local DesignPortfolio. The outputs distinguish confirmed claims, assumptions, pr
 and their sources. Regenerate reports after a material input change; the dependency manifest and
 stale status show when an output is no longer current.
 
+Open the rendered canvas beside the Codex conversation by default as soon as an initial proposal
+exists; a link alone is not the learner experience. After every material design update, regenerate
+the same adjacent `canvas.html` from the saved portfolio and refresh or reopen it in Codex. Keep
+that visual view available alongside the conversation so it reflects the latest design rather than
+a stale snapshot.
+
 Use the recorded `assessment_stage` (new portfolios default to `discovery`) or an explicit
 `--assessment-stage discovery|design|implementation|operation` override. Every deterministic
 finding has a stable ID, affected object, category, severity, assessment stage, explanation,

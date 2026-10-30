@@ -64,7 +64,10 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertGreaterEqual(len(list(workspace.glob("portfolio-dashboard-*.html"))), 2)
             self.assertIn('"codex_instructions"', codex_setup.stdout)
             self.assertIn('"valid": true', doctor.stdout)
-            self.assertIn("Kentaro local business-design workspace", (working_directory / "AGENTS.md").read_text(encoding="utf-8"))
+            installed_instructions = (working_directory / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("Kentaro local business-design workspace", installed_instructions)
+            self.assertIn("Open the visual canvas in Codex beside the conversation", installed_instructions)
+            self.assertIn("refresh or reopen that same canvas in Codex", installed_instructions)
             installed_skills = sorted((working_directory / ".agents" / "skills").glob("*/SKILL.md"))
             self.assertEqual(len(installed_skills), 13)
             self.assertTrue(all(skill.read_text(encoding="utf-8").startswith("---") for skill in installed_skills))
@@ -88,6 +91,7 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertTrue((installed_share / "docs" / "masterclass-companion.md").is_file())
             for skill in ("kentaro-objective-design", "kentaro-use-case-design", "kentaro-ai-product-design", "kentaro-data-product-design", "kentaro-portfolio-analysis", "kentaro-portfolio-readiness"):
                 self.assertTrue((installed_share / "skills" / skill / "SKILL.md").is_file())
+            self.assertIn("refresh or reopen it in Codex", (installed_share / "skills" / "kentaro-portfolio-readiness" / "SKILL.md").read_text(encoding="utf-8"))
 
     def _run(self, command, *, cwd=None, env=None):
         result = subprocess.run(

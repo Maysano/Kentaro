@@ -18,3 +18,7 @@ priority or decision boundary.
 Use `ai_involvement` on a use case as a Claim. It can explicitly be `none`: non-AI use cases are
 valid. Link each supported use case with `use-case-supports-objective`, validate the portfolio,
 and keep implementation decisions outside Kentaro's local design scope.
+
+When this changes an existing design, regenerate its adjacent visual canvas and refresh or reopen
+it beside the Codex conversation. The learner should see the updated operating change without
+having to request the canvas again.

@@ -11,7 +11,15 @@ import unittest
 
 from kentaro.api.demo import read_packaged_demo
 from kentaro.cli import main
-from kentaro.workspace import maysano_config_path, maysano_environment_path, timestamped_output, workspace_path
+from kentaro.workspace import (
+    _managed_instruction_block,
+    _managed_instruction_digest,
+    _content_digest,
+    maysano_config_path,
+    maysano_environment_path,
+    timestamped_output,
+    workspace_path,
+)
 
 
 class FixedDateTime:
@@ -129,6 +137,8 @@ class DefaultCliTests(unittest.TestCase):
                 self.assertIn("Kentaro local business-design workspace", installed_instructions)
                 self.assertIn("First business prompt", installed_instructions)
                 self.assertIn("kentaro design\npropose", installed_instructions)
+                self.assertIn("Open the visual canvas in Codex beside the conversation", installed_instructions)
+                self.assertIn("refresh or reopen that same canvas in Codex", installed_instructions)
                 self.assertIn('"replaced": false', stdout.getvalue())
                 self.assertIn('"fresh_codex_conversation_required": true', stdout.getvalue())
                 self.assertIn("start a new Codex conversation", stdout.getvalue())
@@ -139,6 +149,47 @@ class DefaultCliTests(unittest.TestCase):
                     self.assertEqual(main(["setup", "codex"]), 0)
                 self.assertIn('"instruction_status": "reused"', repeated.getvalue())
                 self.assertIn('"reused": 1', repeated.getvalue())
+            finally:
+                os.chdir(previous)
+
+    def test_setup_codex_upgrades_an_unmodified_legacy_managed_instruction_block(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                instructions = Path(directory) / "AGENTS.md"
+                legacy = _managed_instruction_block().replace(
+                    "Open the visual canvas in Codex beside the conversation as the default companion to the\nfirst proposal; do not merely provide a file link and leave the learner to open it. ",
+                    "",
+                )
+                with patch("kentaro.workspace.LEGACY_UNMODIFIED_MANAGED_INSTRUCTION_HASHES", {_managed_instruction_digest(legacy.rstrip("\n"))}):
+                    instructions.write_text(legacy, encoding="utf-8")
+                    stdout = io.StringIO()
+                    with redirect_stdout(stdout):
+                        self.assertEqual(main(["setup", "codex"]), 0)
+                self.assertIn("Open the visual canvas in Codex beside the conversation", instructions.read_text(encoding="utf-8"))
+                self.assertIn('"instruction_status": "upgraded_managed"', stdout.getvalue())
+            finally:
+                os.chdir(previous)
+
+    def test_setup_codex_upgrades_only_an_unmodified_legacy_skill(self):
+        with TemporaryDirectory() as directory:
+            previous = Path.cwd()
+            os.chdir(directory)
+            try:
+                self.assertEqual(main(["setup", "codex"]), 0)
+                skill = Path(directory) / ".agents" / "skills" / "kentaro-objective-design" / "SKILL.md"
+                legacy = b"# exact legacy skill\n"
+                skill.write_bytes(legacy)
+                with patch(
+                    "kentaro.workspace.LEGACY_UNMODIFIED_SKILL_FILE_HASHES",
+                    {"kentaro-objective-design/SKILL.md": frozenset({_content_digest(legacy)})},
+                ):
+                    stdout = io.StringIO()
+                    with redirect_stdout(stdout):
+                        self.assertEqual(main(["setup", "codex"]), 0)
+                self.assertIn("The learner should see the updated business target", skill.read_text(encoding="utf-8"))
+                self.assertIn('"upgraded_unmodified": 1', stdout.getvalue())
             finally:
                 os.chdir(previous)
 

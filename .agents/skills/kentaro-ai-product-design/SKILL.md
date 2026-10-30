@@ -18,3 +18,7 @@ confirmed operating fact.
 Use semantic relationships to link the product to use cases and data products. Validate before
 rendering or reporting. A complete local definition is not permission for deployment, autonomous
 action, approval, or Maysano mutation.
+
+When this changes an existing design, regenerate its adjacent visual canvas and refresh or reopen
+it beside the Codex conversation. The learner should see the proposed AI option and its human
+oversight boundary without having to request the canvas again.

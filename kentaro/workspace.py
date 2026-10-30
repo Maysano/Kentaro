@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from hashlib import sha256
 from importlib.metadata import PackageNotFoundError, version
 from importlib.resources import files
 from pathlib import Path
@@ -28,6 +29,22 @@ SKILL_NAMES = (
 )
 MANAGED_INSTRUCTIONS_START = "<!-- kentaro-setup: managed instructions start -->"
 MANAGED_INSTRUCTIONS_END = "<!-- kentaro-setup: managed instructions end -->"
+# Kentaro 0.2.3 installed this complete managed block without a version marker.
+# Recognising its exact digest lets a learner upgrade the managed guidance without
+# overwriting any hand edits.  Any other block still requires --replace.
+LEGACY_UNMODIFIED_MANAGED_INSTRUCTION_HASHES = frozenset({
+    "a74bcf371039001d9eb83796b639bb62b6c1edf61c06b5f0abc79017e2594e41",
+})
+# These are the six Kentaro 0.2.3 skill files that gained the live-canvas rule.
+# Only the exact shipped content is upgraded; any learner edit remains protected.
+LEGACY_UNMODIFIED_SKILL_FILE_HASHES = {
+    "kentaro-ai-product-design/SKILL.md": frozenset({"9830a3a1376231aad3ef1e0dbdf0c2f0e21d0bd6c9efb0b1a6d09a9b8d495164"}),
+    "kentaro-data-product-design/SKILL.md": frozenset({"e644e00929698316560e62aad638a982da0b8fcf5a8c6e9803e02353209f0966"}),
+    "kentaro-objective-design/SKILL.md": frozenset({"caac74ae5a30647366d9743da17796dc5f9d2b54da83531acb6be78fc11db2c4"}),
+    "kentaro-portfolio-analysis/SKILL.md": frozenset({"91effa75c59a7287ab92f0629fc6924d18443ccdface2d52106d8608d635f1cc"}),
+    "kentaro-portfolio-readiness/SKILL.md": frozenset({"60064a364eb4c0f2309156c73793f37e2302d828d32466dd37eec6e46b1abf9b"}),
+    "kentaro-use-case-design/SKILL.md": frozenset({"8e247af1e5fd99dcd8e15e9ece501f90f6fea1cbddb440db29d198cd6532db03"}),
+}
 
 
 def workspace_path(cwd: Path | None = None) -> Path:
@@ -57,13 +74,23 @@ def packaged_skills_root() -> Path:
         return installed_root
     raise FileNotFoundError(
         "Kentaro's packaged skills are unavailable. Reinstall with "
-        '`python -m pip install --upgrade "kentaro==0.2.3"`.'
+        '`python -m pip install --upgrade "kentaro==0.2.4"`.'
     )
 
 
 def _managed_instruction_block() -> str:
     template = files("kentaro.resources").joinpath("codex-workspace-AGENTS.md").read_text(encoding="utf-8").strip()
     return f"{MANAGED_INSTRUCTIONS_START}\n{template}\n{MANAGED_INSTRUCTIONS_END}\n"
+
+
+def _content_digest(content: bytes | str) -> str:
+    if isinstance(content, str):
+        content = content.encode("utf-8")
+    return sha256(content).hexdigest()
+
+
+def _managed_instruction_digest(instructions: str) -> str:
+    return _content_digest(instructions)
 
 
 def _write_managed_instructions(target: Path, *, replace: bool) -> str:
@@ -83,7 +110,10 @@ def _write_managed_instructions(target: Path, *, replace: bool) -> str:
         if managed == expected.rstrip("\n"):
             return "reused"
         if not replace:
-            return "preserved_modified"
+            if _managed_instruction_digest(managed) not in LEGACY_UNMODIFIED_MANAGED_INSTRUCTION_HASHES:
+                return "preserved_modified"
+            target.write_text(existing[:start] + expected + existing[end:].lstrip("\n"), encoding="utf-8")
+            return "upgraded_managed"
         target.write_text(existing[:start] + expected + existing[end:].lstrip("\n"), encoding="utf-8")
         return "replaced_modified"
 
@@ -98,7 +128,7 @@ def _copy_skill_tree(source: Path, destination: Path, *, replace: bool) -> dict[
     if source.is_symlink() or destination.is_symlink():
         raise ValueError(f"Refusing to use symbolic links for skill '{source.name}'")
     destination.mkdir(parents=True, exist_ok=True)
-    results = {"installed": 0, "reused": 0, "preserved_modified": 0, "replaced_modified": 0}
+    results = {"installed": 0, "reused": 0, "upgraded_unmodified": 0, "preserved_modified": 0, "replaced_modified": 0}
     for source_file in sorted(path for path in source.rglob("*") if path.is_file()):
         relative = source_file.relative_to(source)
         destination_file = destination / relative
@@ -111,6 +141,9 @@ def _copy_skill_tree(source: Path, destination: Path, *, replace: bool) -> dict[
             elif replace:
                 destination_file.write_bytes(expected)
                 results["replaced_modified"] += 1
+            elif _content_digest(destination_file.read_bytes()) in LEGACY_UNMODIFIED_SKILL_FILE_HASHES.get(f"{source.name}/{relative.as_posix()}", frozenset()):
+                destination_file.write_bytes(expected)
+                results["upgraded_unmodified"] += 1
             else:
                 results["preserved_modified"] += 1
         else:
@@ -169,7 +202,7 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
         installed_version = version("kentaro")
         checks.append({"name": "kentaro_version", "status": "ok", "detail": installed_version})
     except PackageNotFoundError:
-        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": 'Run `python -m pip install "kentaro==0.2.3"`.'})
+        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": 'Run `python -m pip install "kentaro==0.2.4"`.'})
 
     workspace = directory / ".kentaro" / "workspace"
     checks.append({
@@ -238,10 +271,10 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "visual_canvas",
             "status": "ok" if "<html" in canvas.lower() else "failed",
             "detail": "Kentaro can render the local read-only DesignPortfolio canvas.",
-            **({} if "<html" in canvas.lower() else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.3"`.'}),
+            **({} if "<html" in canvas.lower() else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.3"`.'})
+        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'})
 
     try:
         from kentaro.design.reports import validate_odps
@@ -253,10 +286,10 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "odps_validation",
             "status": "ok" if odps_ready else "failed",
             "detail": result if odps_ready else result.get("errors", result),
-            **({} if odps_ready else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.3"`.'}),
+            **({} if odps_ready else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.3"`.'})
+        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'})
 
     failed = [check for check in checks if check["status"] == "failed"]
     return {"valid": not failed, "workspace": str(directory), "checks": checks, "fixes": [check["fix"] for check in failed if "fix" in check]}
