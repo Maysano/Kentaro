@@ -12,20 +12,34 @@ Learn more at [maysano.com/kentaro](https://maysano.com/kentaro).
 Kentaro requires Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.1"
+python -m pip install "kentaro==0.2.2"
 ```
 
-To prepare an empty local folder for a Codex business-design conversation, run this
-once from that folder. It installs Kentaro's 13 Codex skills in `.agents/skills/`,
-adds a bounded managed section to `AGENTS.md`, and creates the local workspace.
-Existing user instructions and changed skills are preserved; `--replace` is required
-to replace changed Kentaro-managed content. Then open the folder in Codex and
-describe the business problem in natural language.
+## Start in Codex
 
-```shell
-kentaro setup codex
-kentaro doctor
-```
+After installing, create an empty local project folder in Codex. In its first chat,
+send this message exactly; Kentaro handles the technical setup on the learner's
+behalf:
+
+> Set up Kentaro in this project. Run `kentaro setup codex`, then `kentaro doctor`,
+> on my behalf. Do not clone the Kentaro repository. After the health check, tell me
+> to start a fresh Codex conversation here before we begin the DesignPortfolio.
+
+Codex runs the installed `kentaro setup codex` and `kentaro doctor` commands in that
+folder. It installs the 13 skills in `.agents/skills/`, adds Kentaro's bounded
+`AGENTS.md` guidance, and creates the local workspace while preserving existing user
+instructions and changed skills.
+
+When Codex reports that the health check passed, start a **new conversation in the
+same folder**. Codex loads `AGENTS.md` and skills when a conversation starts, so the
+setup conversation cannot reliably use the instructions it just installed. In the new
+conversation, start with a short business prompt, for example:
+
+> Our bank's customer risk assessments take too long. Help me improve this process.
+
+Kentaro creates a local, evidence-labelled DesignPortfolio from that business input,
+then guides the learner through the next highest-priority design question. Learners do
+not clone the Kentaro repository, install skills, or type Kentaro commands themselves.
 
 ## Run the demo
 
@@ -76,7 +90,7 @@ standard Kentaro installation. It uses a Customer Risk Intelligence case, keeps 
 distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
 
 ```shell
-python -m pip install "kentaro==0.2.1"
+python -m pip install "kentaro==0.2.2"
 kentaro masterclass init
 kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
 kentaro masterclass report --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json --output-dir .kentaro/workspace/masterclass/customer-risk-intelligence/outputs

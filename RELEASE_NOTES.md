@@ -1,5 +1,18 @@
 # Kentaro release notes
 
+## 0.2.2 — Codex-first learner bootstrap (30 October 2026)
+
+Kentaro 0.2.2 makes the learner journey explicitly Codex-first after the single PyPI
+installation. Learners create an empty folder in Codex and ask Codex to run Kentaro's
+setup and health checks; they do not type Kentaro commands, clone the repository, or
+install skills. Setup now reports the required handoff to a fresh Codex conversation,
+where workspace instructions and skills are loaded before business design begins.
+
+The fresh conversation turns a learner's first business problem into a connected,
+source-labelled local DesignPortfolio with `kentaro design propose`, rather than only
+creating an empty portfolio. It retains unknowns, does not select a scenario, and does
+not assume AI is required.
+
 ## 0.2.1 — Self-contained Codex workspace installation (30 October 2026)
 
 Kentaro 0.2.1 makes the standard PyPI installation self-contained for the local

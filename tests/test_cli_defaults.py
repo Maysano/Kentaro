@@ -125,8 +125,13 @@ class DefaultCliTests(unittest.TestCase):
                     self.assertEqual(main(["setup", "codex"]), 0)
                 instructions = Path(directory) / "AGENTS.md"
                 self.assertTrue(instructions.is_file())
-                self.assertIn("Kentaro local business-design workspace", instructions.read_text(encoding="utf-8"))
+                installed_instructions = instructions.read_text(encoding="utf-8")
+                self.assertIn("Kentaro local business-design workspace", installed_instructions)
+                self.assertIn("First business prompt", installed_instructions)
+                self.assertIn("kentaro design\npropose", installed_instructions)
                 self.assertIn('"replaced": false', stdout.getvalue())
+                self.assertIn('"fresh_codex_conversation_required": true', stdout.getvalue())
+                self.assertIn("start a new Codex conversation", stdout.getvalue())
                 skills = Path(directory) / ".agents" / "skills"
                 self.assertEqual(len(list(skills.glob("*/SKILL.md"))), 13)
                 repeated = io.StringIO()
@@ -180,6 +185,7 @@ class DefaultCliTests(unittest.TestCase):
                 skills = next(check for check in result["checks"] if check["name"] == "kentaro_skills")
                 self.assertEqual(skills["detail"], "13/13 installed")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "design_portfolio")["status"], "not_started")
+                self.assertEqual(next(check for check in result["checks"] if check["name"] == "codex_conversation_reload")["status"], "action_required")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "visual_canvas")["status"], "ok")
             finally:
                 os.chdir(previous)

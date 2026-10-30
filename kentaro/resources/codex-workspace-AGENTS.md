@@ -4,6 +4,10 @@ This is a local Kentaro workspace. Kentaro is an open-source, read-only Maysano
 harness. It is not Maysano's system of record and must not be presented as approving
 work, accessing business systems, or establishing production readiness.
 
+An empty learner workspace does not need to be a Git repository. Do not treat a
+failed `git status` as a setup failure, and do not ask the learner to initialize or
+clone a repository in order to use Kentaro.
+
 ## Use the installed Kentaro skills
 
 The `.agents/skills/` directory contains the complete Kentaro skill set. When a
@@ -27,6 +31,28 @@ The saved `DesignPortfolio` JSON file is authoritative; conversation history and
 rendered files are not. For a new blank design, create a generic portfolio with
 `kentaro design init`; use `kentaro design propose` for a bounded first draft from
 a short business problem. Use a scenario only when the learner explicitly requests it.
+
+## First business prompt
+
+When the learner's first message describes a business problem and this workspace has
+no DesignPortfolio, create the initial local portfolio by running `kentaro design
+propose` with the learner's exact business input. A completely empty portfolio created
+during setup (no objects, relationships, claims, or learner-supplied content) is also
+treated as no DesignPortfolio: replace that empty file with the proposed portfolio so
+there is one authoritative design. Never replace a portfolio containing learner input.
+Save the portfolio under `.kentaro/workspace/design/` with its adjacent generated
+outputs. Do not create only an empty `design init` portfolio in response to that
+business input, do not select a scenario, and do not invent a KPI, owner, system,
+policy, or AI requirement. The proposal must retain supplied facts as user-confirmed
+and label generated candidates as proposed or unknown. Read the resulting engagement
+state, show the learner what is confirmed, proposed, and unknown, then ask its single
+highest-priority business question.
+
+If the learner explicitly asks for an empty DesignPortfolio before giving a business
+problem, use `kentaro design init` instead. If this workspace was set up during the
+current Codex conversation, tell the learner to start a fresh conversation in this
+same folder before using this workflow: Codex loads `AGENTS.md` and skills when a
+conversation starts.
 
 After every relevant learner input, incorporate the information as sourced claims,
 validate the saved portfolio, refresh the adjacent `engagement-state.json`, and use

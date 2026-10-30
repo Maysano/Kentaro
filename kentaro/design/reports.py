@@ -229,7 +229,7 @@ def validate_odps(path: str | Path) -> dict:
     try:
         import open_data_products
     except ImportError as error:
-        raise ValueError('ODPS validation requires `python -m pip install --upgrade "kentaro==0.2.1"`.') from error
+        raise ValueError('ODPS validation requires `python -m pip install --upgrade "kentaro==0.2.2"`.') from error
     if getattr(open_data_products, "__version__", None) != "0.4.0":
         raise ValueError("Design validation requires open-data-products 0.4.0")
     completed = subprocess.run([sys.executable, "-m", "open_data_products.cli", "validate", str(Path(path).resolve()), "--json"], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)

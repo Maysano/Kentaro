@@ -57,7 +57,7 @@ def packaged_skills_root() -> Path:
         return installed_root
     raise FileNotFoundError(
         "Kentaro's packaged skills are unavailable. Reinstall with "
-        '`python -m pip install --upgrade "kentaro==0.2.1"`.'
+        '`python -m pip install --upgrade "kentaro==0.2.2"`.'
     )
 
 
@@ -145,6 +145,13 @@ def install_codex_workspace(directory: Path | None = None, *, replace: bool = Fa
         "skills": skill_results,
         "design_directory": str(workspace / "design"),
         "replaced": replace,
+        "fresh_codex_conversation_required": True,
+        "codex_handoff": (
+            "Kentaro setup is complete. Run `kentaro doctor` now. If it passes, end this "
+            "setup conversation and start a new Codex conversation in this same folder before "
+            "starting business design: Codex reads AGENTS.md and workspace skills when a "
+            "conversation starts. Do not clone the Kentaro repository."
+        ),
     }
 
 
@@ -162,7 +169,7 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
         installed_version = version("kentaro")
         checks.append({"name": "kentaro_version", "status": "ok", "detail": installed_version})
     except PackageNotFoundError:
-        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": 'Run `python -m pip install "kentaro==0.2.1"`.'})
+        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": 'Run `python -m pip install "kentaro==0.2.2"`.'})
 
     workspace = directory / ".kentaro" / "workspace"
     checks.append({
@@ -190,6 +197,17 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
         "missing": missing_skills,
         **({} if not missing_skills else {"fix": "Run `kentaro setup codex` from this workspace."}),
     })
+
+    if instructions_ready and not missing_skills:
+        checks.append({
+            "name": "codex_conversation_reload",
+            "status": "action_required",
+            "detail": (
+                "If this conversation ran Kentaro setup, start a fresh Codex conversation in "
+                "this same workspace before beginning business design. AGENTS.md and skills are "
+                "loaded when a conversation starts."
+            ),
+        })
 
     portfolios = [path for path in (workspace / "design").glob("*.json") if path.name != "engagement-state.json"] if workspace.is_dir() else []
     if not portfolios:
@@ -220,10 +238,10 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "visual_canvas",
             "status": "ok" if "<html" in canvas.lower() else "failed",
             "detail": "Kentaro can render the local read-only DesignPortfolio canvas.",
-            **({} if "<html" in canvas.lower() else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.1"`.'}),
+            **({} if "<html" in canvas.lower() else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.2"`.'}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.1"`.'})
+        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.2"`.'})
 
     try:
         from kentaro.design.reports import validate_odps
@@ -235,10 +253,10 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "odps_validation",
             "status": "ok" if odps_ready else "failed",
             "detail": result if odps_ready else result.get("errors", result),
-            **({} if odps_ready else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.1"`.'}),
+            **({} if odps_ready else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.2"`.'}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.1"`.'})
+        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.2"`.'})
 
     failed = [check for check in checks if check["status"] == "failed"]
     return {"valid": not failed, "workspace": str(directory), "checks": checks, "fixes": [check["fix"] for check in failed if "fix" in check]}

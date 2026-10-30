@@ -10,34 +10,34 @@ automatically created `.kentaro/workspace/` directory.
 Kentaro needs Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.1"
+python -m pip install "kentaro==0.2.2"
 ```
 
-## Prepare a Codex workspace
+## Prepare the workspace from Codex
 
-In an empty folder that you want to use for local Kentaro work, run:
+Create an empty project folder in Codex. In the first Codex chat, send this message:
 
-```shell
-kentaro setup codex
-```
+> Set up Kentaro in this project. Run `kentaro setup codex`, then `kentaro doctor`,
+> on my behalf. Do not clone the Kentaro repository. After the health check, tell me
+> to start a fresh Codex conversation here before we begin the DesignPortfolio.
 
-It installs all 13 Kentaro skills in Codex's workspace `.agents/skills/` discovery
-directory and adds a managed Kentaro section to `AGENTS.md`. Existing learner
-instructions remain in place. A later run is safe: unchanged files are reused and
-learner changes are preserved. Use `--replace` only when you explicitly want to
-replace changed Kentaro-managed instructions or skills. Open that folder in Codex and
-describe the business problem in natural language. The saved DesignPortfolio and
-generated outputs stay beneath the folder's ignored `.kentaro/workspace/` directory.
+Codex runs the installed setup and health-check commands itself. Setup installs all 13
+Kentaro skills in `.agents/skills/`, adds a managed Kentaro section to `AGENTS.md`,
+and creates the local workspace. Existing learner instructions and modified skills
+remain in place; replacement always needs explicit approval.
 
-Confirm the workspace before opening Codex:
+When Codex reports a passing health check, start a **new Codex conversation in the
+same folder**. This is required because Codex loads `AGENTS.md` and skills when a
+conversation starts. The original conversation is only for setup.
 
-```shell
-kentaro doctor
-```
+In the fresh conversation, describe the business problem in plain language, for
+example:
 
-`doctor` checks the installed Kentaro version, local workspace, managed instructions,
-all 13 skills, and the pinned ODPS validator. It prints a specific fix for anything
-that is missing.
+> Our bank's customer risk assessments take too long. Help me improve this process.
+
+Kentaro creates the connected, evidence-labelled local DesignPortfolio and canvas
+from that input. It preserves unknowns and asks the next most important business
+question; it does not select the course scenario or assume AI is required.
 
 ## Run the local synthetic demo
 
