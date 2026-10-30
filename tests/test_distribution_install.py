@@ -90,11 +90,13 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertTrue((installed_scenario / "facilitator-answer-key.md").is_file())
             installed_data = Path(self._run([str(python), "-c", "import sysconfig; print(sysconfig.get_path('data'))"]).stdout.strip())
             installed_share = installed_data / "share" / "kentaro"
-            installed_readme = installed_share / "docs" / "README.md"
+            installed_readme = installed_share / "README.md"
             readme_content = installed_readme.read_text(encoding="utf-8")
             self.assertIn("python -m pip install kentaro", readme_content)
             self.assertNotIn("kentaro==", readme_content)
             self.assertIn("python -m pip install --upgrade kentaro", readme_content)
+            installed_docs_index = installed_share / "docs" / "README.md"
+            self.assertIn("Kentaro developer documentation", installed_docs_index.read_text(encoding="utf-8"))
             self.assertTrue((installed_share / "docs" / "design-portfolio.md").is_file())
             self.assertTrue((installed_share / "docs" / "masterclass-companion.md").is_file())
             for skill in ("kentaro-objective-design", "kentaro-use-case-design", "kentaro-ai-product-design", "kentaro-data-product-design", "kentaro-portfolio-analysis", "kentaro-portfolio-readiness"):

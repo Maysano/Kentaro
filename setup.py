@@ -10,10 +10,14 @@ from setuptools import setup
 
 
 ROOT = Path(__file__).parent
-DOCS = [ROOT / "README.md", ROOT / "RELEASE_NOTES.md", *sorted((ROOT / "docs").glob("*.md"))]
+ROOT_DOCUMENTS = [ROOT / "README.md", ROOT / "RELEASE_NOTES.md"]
+DOCS = sorted((ROOT / "docs").glob("*.md"))
 SKILLS = ROOT / ".agents" / "skills"
 
-data_files = [("share/kentaro/docs", [path.relative_to(ROOT).as_posix() for path in DOCS])]
+data_files = [
+    ("share/kentaro", [path.relative_to(ROOT).as_posix() for path in ROOT_DOCUMENTS]),
+    ("share/kentaro/docs", [path.relative_to(ROOT).as_posix() for path in DOCS]),
+]
 for skill in sorted(path for path in SKILLS.iterdir() if path.is_dir()):
     files = sorted(path for path in skill.rglob("*") if path.is_file())
     if files:

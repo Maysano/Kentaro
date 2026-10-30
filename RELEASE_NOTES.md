@@ -1,5 +1,19 @@
 # Kentaro release notes
 
+## 0.2.9 — Preserve the packaged README (30 October 2026)
+
+Kentaro 0.2.9 corrects a distribution-layout collision exposed during 0.2.8
+release validation. The root README and the documentation index previously both
+installed as `share/kentaro/docs/README.md`, allowing the documentation index to
+overwrite the user-facing package README. The root README and release notes now
+install at `share/kentaro/`; the documentation index remains at
+`share/kentaro/docs/README.md` with its relative links intact.
+
+The clean-wheel smoke test verifies both files independently. It rejects stale
+exact-version installation pins in the packaged root README and confirms the
+documentation index remains available. This patch does not alter Kentaro's
+local, read-only behavior or approval boundaries.
+
 ## 0.2.8 — Correct installation guidance (30 October 2026)
 
 Kentaro 0.2.8 corrects the packaged installation guidance after the 0.2.7
