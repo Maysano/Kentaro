@@ -12,7 +12,7 @@ Learn more at [maysano.com/kentaro](https://maysano.com/kentaro).
 Kentaro requires Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.5"
+python -m pip install "kentaro==0.2.6"
 ```
 
 ## Start in Codex
@@ -22,8 +22,11 @@ send this message exactly; Kentaro handles the technical setup on the learner's
 behalf:
 
 > Set up Kentaro in this project. Run `kentaro setup codex`, then `kentaro doctor`,
-> on my behalf. Do not clone the Kentaro repository. After the health check, tell me
-> to start a fresh Codex conversation here before we begin the DesignPortfolio.
+> on my behalf. Do not clone the Kentaro repository. When the checks pass, give me a
+> short plain-language summary with **Setup**, **Health check**, and **What happens
+> next**. Confirm the 13 skills, local workspace, ODPS validation, and visual canvas;
+> then tell me to start a fresh Codex conversation here before we begin the
+> DesignPortfolio, with one ready-to-send business prompt.
 
 Codex runs the installed `kentaro setup codex` and `kentaro doctor` commands in that
 folder. It installs the 13 skills in `.agents/skills/`, adds Kentaro's bounded
@@ -90,7 +93,7 @@ standard Kentaro installation. It uses a Customer Risk Intelligence case, keeps 
 distinct from data products, and does not contact Maysano, Ollama, or a hosted model.
 
 ```shell
-python -m pip install "kentaro==0.2.5"
+python -m pip install "kentaro==0.2.6"
 kentaro masterclass init
 kentaro masterclass validate --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json
 kentaro masterclass report --input .kentaro/workspace/masterclass/customer-risk-intelligence/portfolio.json --output-dir .kentaro/workspace/masterclass/customer-risk-intelligence/outputs

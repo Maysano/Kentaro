@@ -1,5 +1,19 @@
 # Kentaro release notes
 
+## 0.2.6 — Clear Codex setup handoff (30 October 2026)
+
+Kentaro 0.2.6 makes a successful Codex-first setup understandable to a
+nontechnical learner. `kentaro doctor` now returns a concise, evidence-backed
+handoff covering the workspace instructions, all 13 skills, ODPS validation,
+and the local visual canvas, followed by the required fresh-conversation step
+and a ready-to-send first business prompt.
+
+The learner-facing starter prompts in the README and getting-started guide ask
+Codex to present that handoff under **Setup**, **Health check**, and **What
+happens next**. An untouched Kentaro 0.2.5 managed `AGENTS.md` block upgrades
+to the new guidance when `kentaro setup codex` is rerun; learner modifications
+remain protected unless explicitly replaced.
+
 ## 0.2.5 — Branded business-design canvas (30 October 2026)
 
 Kentaro 0.2.5 refines the local, read-only business-design canvas into a more

@@ -32,6 +32,24 @@ rendered files are not. For a new blank design, create a generic portfolio with
 `kentaro design init`; use `kentaro design propose` for a bounded first draft from
 a short business problem. Use a scenario only when the learner explicitly requests it.
 
+## Finish a setup conversation clearly
+
+When the learner has asked you to run `kentaro setup codex` and `kentaro doctor` in
+this same conversation, do not reduce a successful result to a version number and a
+request to restart. Use the `learner_handoff` returned by `kentaro doctor` to close
+with these short headings in plain language:
+
+- **Setup** — confirm that `AGENTS.md` and all 13 Kentaro skills are ready.
+- **Health check** — confirm the local workspace, ODPS validation, and local visual
+  canvas are ready. Do not imply that this is business approval or production
+  readiness.
+- **What happens next** — tell the learner to start a new Codex conversation in the
+  same folder, then give the `first_business_prompt` exactly as a ready-to-send
+  example.
+
+Do not begin business design in the setup conversation. Do not ask the learner to
+run any more terminal commands, clone a repository, or explain Kentaro internals.
+
 ## First business prompt
 
 When the learner's first message describes a business problem and this workspace has

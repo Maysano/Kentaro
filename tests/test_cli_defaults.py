@@ -238,6 +238,12 @@ class DefaultCliTests(unittest.TestCase):
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "design_portfolio")["status"], "not_started")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "codex_conversation_reload")["status"], "action_required")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "visual_canvas")["status"], "ok")
+                handoff = result["learner_handoff"]
+                self.assertEqual(handoff["headline"], "Kentaro is ready for business design.")
+                self.assertIn("13/13 Kentaro skills", handoff["setup"][1])
+                self.assertIn("ODPS validation", handoff["health_check"][1])
+                self.assertIn("Start a new Codex conversation", handoff["next_step"])
+                self.assertEqual(handoff["first_business_prompt"], "Our bank's customer risk assessments take too long. Help me improve this process.")
             finally:
                 os.chdir(previous)
 

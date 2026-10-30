@@ -10,7 +10,7 @@ automatically created `.kentaro/workspace/` directory.
 Kentaro needs Python 3.11 or later.
 
 ```shell
-python -m pip install "kentaro==0.2.5"
+python -m pip install "kentaro==0.2.6"
 ```
 
 ## Prepare the workspace from Codex
@@ -18,8 +18,11 @@ python -m pip install "kentaro==0.2.5"
 Create an empty project folder in Codex. In the first Codex chat, send this message:
 
 > Set up Kentaro in this project. Run `kentaro setup codex`, then `kentaro doctor`,
-> on my behalf. Do not clone the Kentaro repository. After the health check, tell me
-> to start a fresh Codex conversation here before we begin the DesignPortfolio.
+> on my behalf. Do not clone the Kentaro repository. When the checks pass, give me a
+> short plain-language summary with **Setup**, **Health check**, and **What happens
+> next**. Confirm the 13 skills, local workspace, ODPS validation, and visual canvas;
+> then tell me to start a fresh Codex conversation here before we begin the
+> DesignPortfolio, with one ready-to-send business prompt.
 
 Codex runs the installed setup and health-check commands itself. Setup installs all 13
 Kentaro skills in `.agents/skills/`, adds a managed Kentaro section to `AGENTS.md`,

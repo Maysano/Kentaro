@@ -29,11 +29,13 @@ SKILL_NAMES = (
 )
 MANAGED_INSTRUCTIONS_START = "<!-- kentaro-setup: managed instructions start -->"
 MANAGED_INSTRUCTIONS_END = "<!-- kentaro-setup: managed instructions end -->"
-# Kentaro 0.2.3 installed this complete managed block without a version marker.
-# Recognising its exact digest lets a learner upgrade the managed guidance without
-# overwriting any hand edits.  Any other block still requires --replace.
+# Kentaro 0.2.3 and 0.2.5 installed complete managed blocks without a version
+# marker. Recognising their exact digests lets a learner upgrade the managed
+# guidance without overwriting any hand edits. Any other block still requires
+# --replace.
 LEGACY_UNMODIFIED_MANAGED_INSTRUCTION_HASHES = frozenset({
     "a74bcf371039001d9eb83796b639bb62b6c1edf61c06b5f0abc79017e2594e41",
+    "f74826b95483688dc1124383ee315142c157e143d31103ca4a4c3e6de05b14c0",
 })
 # These are the six Kentaro 0.2.3 skill files that gained the live-canvas rule.
 # Only the exact shipped content is upgraded; any learner edit remains protected.
@@ -202,7 +204,7 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
         installed_version = version("kentaro")
         checks.append({"name": "kentaro_version", "status": "ok", "detail": installed_version})
     except PackageNotFoundError:
-        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": 'Run `python -m pip install "kentaro==0.2.4"`.'})
+        checks.append({"name": "kentaro_version", "status": "failed", "detail": "Kentaro is not installed", "fix": "Run `python -m pip install --upgrade kentaro`."})
 
     workspace = directory / ".kentaro" / "workspace"
     checks.append({
@@ -271,10 +273,10 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "visual_canvas",
             "status": "ok" if "<html" in canvas.lower() else "failed",
             "detail": "Kentaro can render the local read-only DesignPortfolio canvas.",
-            **({} if "<html" in canvas.lower() else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'}),
+            **({} if "<html" in canvas.lower() else {"fix": "Run `python -m pip install --upgrade kentaro`."}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'})
+        checks.append({"name": "visual_canvas", "status": "failed", "detail": str(error), "fix": "Run `python -m pip install --upgrade kentaro`."})
 
     try:
         from kentaro.design.reports import validate_odps
@@ -286,13 +288,29 @@ def codex_workspace_doctor(directory: Path | None = None) -> dict[str, Any]:
             "name": "odps_validation",
             "status": "ok" if odps_ready else "failed",
             "detail": result if odps_ready else result.get("errors", result),
-            **({} if odps_ready else {"fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'}),
+            **({} if odps_ready else {"fix": "Run `python -m pip install --upgrade kentaro`."}),
         })
     except (ImportError, ValueError) as error:
-        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": 'Run `python -m pip install --upgrade "kentaro==0.2.4"`.'})
+        checks.append({"name": "odps_validation", "status": "failed", "detail": str(error), "fix": "Run `python -m pip install --upgrade kentaro`."})
 
     failed = [check for check in checks if check["status"] == "failed"]
-    return {"valid": not failed, "workspace": str(directory), "checks": checks, "fixes": [check["fix"] for check in failed if "fix" in check]}
+    result = {"valid": not failed, "workspace": str(directory), "checks": checks, "fixes": [check["fix"] for check in failed if "fix" in check]}
+    if not failed:
+        result["learner_handoff"] = {
+            "headline": "Kentaro is ready for business design.",
+            "setup": [
+                "Kentaro workspace instructions are installed in AGENTS.md.",
+                f"{len(SKILL_NAMES)}/{len(SKILL_NAMES)} Kentaro skills are available for this project.",
+            ],
+            "health_check": [
+                "The local workspace is ready.",
+                "ODPS validation is ready.",
+                "The read-only visual canvas can be generated locally.",
+            ],
+            "next_step": "Start a new Codex conversation in this same folder. Codex loads AGENTS.md and project skills when a conversation starts.",
+            "first_business_prompt": "Our bank's customer risk assessments take too long. Help me improve this process.",
+        }
+    return result
 
 
 def timestamped_output(workspace: Path, stem: str, suffix: str) -> Path:
