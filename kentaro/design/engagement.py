@@ -75,6 +75,25 @@ def _required_deliverables(completion: dict, delivery: dict | None) -> dict:
     }
 
 
+def _company_graph_status(design: dict, delivery: dict | None) -> dict:
+    claim = design.get("claims", {}).get("company_graph_context", {})
+    marker = claim.get("value", {}) if isinstance(claim, dict) else {}
+    if marker.get("mode") != "connected" or marker.get("source_kind") != "maysano":
+        return {
+            "mode": marker.get("mode", "not_initialized"),
+            "status": "not_authoritatively_verified",
+            "detail": "Local design may continue, but reuse, duplication, and dependency findings are not verified against the company graph.",
+        }
+    return {
+        "mode": "connected",
+        "status": "revalidated_for_final_handover" if delivery and delivery.get("company_graph_revalidated") else "refresh_required_before_final_handover",
+        "source": marker.get("source_label"),
+        "scope": marker.get("scope"),
+        "retrieved_at": marker.get("retrieved_at"),
+        "detail": "The complete graph remains in memory only; Kentaro retains source and coverage metadata, not a company-graph cache.",
+    }
+
+
 def _element_hashes(design: dict) -> dict:
     """Small fingerprints permit impact evaluation without duplicating the portfolio."""
     return {
@@ -191,6 +210,7 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
             "limitations": completion.get("limitations", []),
         },
         "handover": delivery or {"status": "not_generated", "source_hash": checked["content_hash"]},
+        "company_graph_context": _company_graph_status(design, delivery),
         "evaluation": _evaluation(design, checked, completion, readiness_result, previous, delivery),
     }
 

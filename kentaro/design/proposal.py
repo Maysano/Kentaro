@@ -9,6 +9,7 @@ from hashlib import sha256
 
 from .portfolio import add_object, add_relationship, create_design_portfolio, make_claim
 from .reports import analysis, readiness
+from .company_context import attach_context_marker, match_business_intent, unavailable_context
 
 
 def _source(text: str) -> tuple[str, str, str]:
@@ -307,7 +308,7 @@ def _finance_proposal(text: str, source: tuple[str, str, str]) -> tuple[dict, li
     return portfolio, ["Which monthly report and discrepancy type creates the greatest business impact? Its answer determines the first reconciliation scope."]
 
 
-def propose_design(text: str) -> dict:
+def propose_design(text: str, *, company_context: dict | None = None) -> dict:
     """Return a source-labelled initial proposal or one essential framing question."""
     normalized = " ".join(text.lower().split())
     source = _source(text)
@@ -323,6 +324,16 @@ def propose_design(text: str) -> dict:
     else:
         portfolio, questions = _context_needed_proposal(text, source)
         frame = "needs_context"
+    context = company_context or unavailable_context()
+    graph_findings = match_business_intent(context, text)
+    portfolio = attach_context_marker(portfolio, context, graph_findings)
+    # Existing records are evidence for a review, never a reason to silently
+    # suppress a proposed local object.  The caller receives the candidates so
+    # an agent can ask the suitability question before proposing a new product.
+    if context.get("available") and graph_findings["matches"]:
+        questions = [
+            "Before treating a new capability as necessary, should we evaluate the matched company-graph candidates for reuse, ownership, consumer fit, and information suitability?"
+        ] + questions
     assessment = analysis(portfolio)
     readiness_result = readiness(portfolio)
     return {
@@ -340,4 +351,8 @@ def propose_design(text: str) -> dict:
         },
         "analysis": assessment,
         "readiness": readiness_result,
+        "company_graph": {
+            "context": {key: value for key, value in context.items() if key not in {"records", "relationships"}},
+            "findings": graph_findings,
+        },
     }

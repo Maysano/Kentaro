@@ -40,6 +40,7 @@ from kentaro.design.reports import executive_summary, manifest, readiness, stale
 from kentaro.design.handover import export_handover, handover_status, inspect_handover, prepare_handover_review, validate_handover
 from kentaro.design.engagement import load_engagement_state, state_path, update_engagement_state
 from kentaro.design.proposal import propose_design
+from kentaro.design.company_context import initialize_company_context, match_business_intent, unavailable_context
 from kentaro.scenarios.udemy_masterclass import odps_fixture, starting_portfolio
 from kentaro.workspace import (
     DEFAULT_MAYSANO_BASE_URL,
@@ -158,6 +159,7 @@ def _parser() -> argparse.ArgumentParser:
     design_propose.add_argument("--business-input", required=True, help="The business owner's initial problem statement")
     design_propose.add_argument("--output", required=True, help="Local DesignPortfolio path under .kentaro/workspace/")
     design_propose.add_argument("--output-dir", help="Optional local directory for the canvas and reports")
+    design_propose.add_argument("--company-source", choices=("auto", "local", "demo", "maysano"), default="auto", help="Company graph source: auto uses a configured Maysano connection; local records explicitly unverified design")
     design_add_object = design_commands.add_parser("add-object", help="Add a structured objective, use case, AI product, or data product")
     design_add_object.add_argument("--input", required=True)
     design_add_object.add_argument("--id", required=True)
@@ -235,6 +237,7 @@ def _parser() -> argparse.ArgumentParser:
     handover_generate.add_argument("--confirmation", required=True, help="The user's recorded confirmation statement")
     handover_generate.add_argument("--acknowledge-open-decisions", action="store_true", help="Record that the confirming user reviewed every unresolved decision")
     handover_generate.add_argument("--assessment-stage", choices=("discovery", "design", "implementation", "operation"), help="Override the recorded assessment stage for this package only")
+    handover_generate.add_argument("--company-source", choices=("auto", "maysano"), default="auto", help="Authoritative source used to revalidate a connected design before final export")
     handover_validate = handover_commands.add_parser("validate", help="Validate handover package artifact integrity")
     handover_validate.add_argument("--package", required=True, help="Local handover package directory under .kentaro/workspace/")
     handover_inspect = handover_commands.add_parser("inspect", help="Inspect the handover manifest and integrity findings")
@@ -273,6 +276,30 @@ def _source_context(args: argparse.Namespace, workspace: Path) -> tuple[dict, st
     if environment_file is None:
         raise ValueError("Advanced live profiles require --env-file; or run `kentaro configure maysano` for local setup.")
     return LiveClient(environment_file, config["scope"]).read_portfolio(), config["model"]["mode"]
+
+
+def _company_graph_context(args: argparse.Namespace, workspace: Path, requested: str) -> dict:
+    """Initialise one ephemeral graph context for a connected design operation.
+
+    A failed live read deliberately returns an explicit local-unverified context
+    for proposal work.  Final export applies the stricter gate in its caller.
+    """
+    if requested == "local":
+        return unavailable_context("Local design was explicitly selected without company-graph verification.")
+    if requested == "auto":
+        advanced = load_config(args.config) if getattr(args, "config", None) else None
+        configured = advanced is not None or (maysano_config_path(workspace).exists() and maysano_environment_path(workspace).exists())
+        if not configured:
+            return unavailable_context()
+        requested = "demo" if advanced and advanced["profile"] == "demo" else "maysano"
+    if requested == "demo":
+        return initialize_company_context(read_packaged_demo(), source_kind="demo")
+    scoped_args = argparse.Namespace(**vars(args), source="maysano")
+    try:
+        snapshot, _ = _source_context(scoped_args, workspace)
+    except (ValueError, OSError, KeyError, TypeError) as error:
+        return unavailable_context(f"Maysano company graph is unavailable: {error}")
+    return initialize_company_context(snapshot, source_kind="maysano")
 
 
 def _write_dashboard(context: dict, workspace: Path, *, output: str | None, inline: bool) -> Path:
@@ -423,7 +450,8 @@ def main(argv=None):
                 print(json.dumps({"portfolio": str(saved), "engagement_state": str(state), "model": "DesignPortfolio", "scenario": args.scenario, "local_only": True}, sort_keys=True))
             elif args.design_command == "propose":
                 output = _workspace_output(args.output, workspace)
-                proposal = propose_design(args.business_input)
+                company_context = _company_graph_context(args, workspace, args.company_source)
+                proposal = propose_design(args.business_input, company_context=company_context)
                 saved = save_portfolio(proposal["portfolio"], output)
                 destination = _workspace_output(args.output_dir, workspace) if args.output_dir else output.parent / "proposal"
                 _write_design_reports(proposal["portfolio"], destination)
@@ -443,7 +471,9 @@ def main(argv=None):
                     "frame": proposal["frame"],
                     "clarification_questions": proposal["clarification_questions"],
                     "measurement": proposal["measurement"],
+                    "company_graph": proposal["company_graph"],
                     "local_only": True,
+                    "maysano_connection": bool(company_context["available"] and company_context.get("source_kind") == "maysano"),
                 }, sort_keys=True))
             elif args.design_command == "add-object":
                 portfolio = load_portfolio(_workspace_output(args.input, workspace))
@@ -503,9 +533,21 @@ def main(argv=None):
                     print(json.dumps({"review_material": str(result["package"]), "status": result["manifest"]["status"], "source": result["manifest"]["source"]}, sort_keys=True))
                 elif args.handover_command == "generate":
                     portfolio = load_portfolio(_workspace_output(args.input, workspace))
+                    context_claim = portfolio.get("claims", {}).get("company_graph_context", {})
+                    context_marker = context_claim.get("value", {}) if isinstance(context_claim, dict) else {}
+                    graph_revalidation = None
+                    if context_marker.get("mode") == "connected" and context_marker.get("source_kind") == "maysano":
+                        refreshed_context = _company_graph_context(args, workspace, args.company_source)
+                        if not refreshed_context.get("available"):
+                            raise ValueError("A connected design requires a fresh authoritative company-graph read before final handover export. " + refreshed_context["reason"])
+                        business_input = portfolio.get("claims", {}).get("initial_business_input", {}).get("value", "")
+                        graph_revalidation = match_business_intent(refreshed_context, business_input if isinstance(business_input, str) else "")
+                        from kentaro.design.company_context import attach_context_marker
+                        portfolio = attach_context_marker(portfolio, refreshed_context, graph_revalidation)
+                        save_portfolio(portfolio, _workspace_output(args.input, workspace))
                     result = export_handover(portfolio, package, reviewer=args.reviewer, confirmation=args.confirmation, acknowledge_all_open_decisions=args.acknowledge_open_decisions, assessment_stage=args.assessment_stage)
-                    _refresh_engagement(_workspace_output(args.input, workspace), delivery={"status": "generated", "source_hash": result["manifest"]["source"]["portfolio_hash"], "package": str(result["package"]), "specifications_generated": bool(result["manifest"]["specification_status"]) and all(item.get("status") == "validated" for item in result["manifest"]["specification_status"])})
-                    print(json.dumps({"handover_zip": str(result["package"]), "status": result["manifest"]["status"], "source": result["manifest"]["source"], "specification_status": result["manifest"]["specification_status"]}, sort_keys=True))
+                    _refresh_engagement(_workspace_output(args.input, workspace), delivery={"status": "generated", "source_hash": result["manifest"]["source"]["portfolio_hash"], "package": str(result["package"]), "specifications_generated": bool(result["manifest"]["specification_status"]) and all(item.get("status") == "validated" for item in result["manifest"]["specification_status"]), "company_graph_revalidated": graph_revalidation is not None})
+                    print(json.dumps({"handover_zip": str(result["package"]), "status": result["manifest"]["status"], "source": result["manifest"]["source"], "specification_status": result["manifest"]["specification_status"], "company_graph_revalidation": graph_revalidation}, sort_keys=True))
                 elif args.handover_command == "validate":
                     result = validate_handover(package)
                     print(json.dumps(result, sort_keys=True))

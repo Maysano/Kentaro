@@ -67,10 +67,13 @@ class MinimalInputProposalTests(unittest.TestCase):
     def test_canvas_leads_with_business_decisions_and_keeps_specs_secondary(self):
         canvas = render_canvas(propose_design("Our finance team spends too much time reconciling monthly reports from different systems.")["portfolio"])
 
-        self.assertIn("Business design summary", canvas)
-        self.assertIn("Business target", canvas)
-        self.assertIn("Supporting specifications held separately", canvas)
-        self.assertIn("Business evidence still needed", canvas)
+        self.assertIn("Business outcome", canvas)
+        self.assertIn("Decisions needing attention", canvas)
+        self.assertIn("Business overview", canvas)
+        self.assertIn("Review issues", canvas)
+        self.assertIn("A focused view of the business outcome", canvas)
+        self.assertNotIn("Proposed reusable capabilities", canvas)
+        self.assertNotIn('<aside class="info"', canvas)
         self.assertNotIn("Input hash", canvas)
         self.assertNotIn("Declared objects", canvas)
 

@@ -1,5 +1,23 @@
 # Local DesignPortfolio
 
+## Connected company-graph context
+
+When a workspace has an explicitly configured Maysano read connection, `kentaro design
+propose` automatically initializes its first design operation from the existing company
+graph. It reuses the documented read-only products, business-objectives, business-use-cases,
+and relationship retrieval; it does not add an API or any write capability. Existing records
+remain sourced context, while every new DesignPortfolio object remains proposed or unknown
+until a human confirms it.
+
+The live API's `Cache-Control: no-store` policy means the full graph is held only for the
+active operation. Kentaro stores only context provenance (source, scope, retrieval time,
+coverage counts, and limitations) in the ignored local design workspace, not a cached
+company graph. The operation identifies lexical candidates for reuse or overlap and requires
+their consumer, boundary, authority, access, quality, and service suitability to be evaluated;
+a candidate does not prove equivalence or duplication. If context is unavailable, local design
+continues with an explicit unverified status. A connected Maysano design is freshly re-read
+before final handover export; unavailable revalidation keeps that export gated.
+
 ## Decision Context and delivery handover
 
 `kentaro design propose` automatically creates a local **suggested design review package** from a

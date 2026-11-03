@@ -32,6 +32,23 @@ rendered files are not. For a new blank design, create a generic portfolio with
 `kentaro design init`; use `kentaro design propose` for a bounded first draft from
 a short business problem. Use a scenario only when the learner explicitly requests it.
 
+## Company-graph initialization for connected design
+
+Before starting a new design from business input, determine whether the local workspace
+has a configured Maysano connection. If it does, use `kentaro design propose` without
+forcing `--company-source local`: it automatically retrieves the existing read-only
+company graph, records its source, scope, retrieval time, and coverage, and returns
+relevant existing-object candidates. Use those candidates throughout the conversation:
+evaluate existing data products for reuse before proposing another product, and ask for
+missing suitability information rather than inferring it. Existing graph objects are
+source facts; local DesignPortfolio objects remain proposed until confirmed.
+
+The live API is `no-store`, so Kentaro keeps the retrieved graph only in the active
+operation and persists provenance metadata rather than a customer-graph cache. If the
+connection or read is unavailable, say that the design is local and unverified against
+the company graph; do not claim verified reuse, duplication, or dependencies. A connected
+design must perform a fresh Maysano read automatically before final handover generation.
+
 ## Finish a setup conversation clearly
 
 When the learner has asked you to run `kentaro setup codex` and `kentaro doctor` in

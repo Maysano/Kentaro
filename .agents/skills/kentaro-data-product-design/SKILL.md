@@ -11,6 +11,12 @@ owner and lifecycle responsibility, intended interface/service model, semantics,
 freshness, contract, and access requirements. Preserve unknown, assumed, and proposed
 information as canonical Claims rather than inventing operating facts.
 
+For a connected new design, inspect the initialized company graph before proposing a data
+product. Existing data-product candidates must be evaluated for consumer fit, boundary,
+authority, quality, access, and service suitability before creating a new proposal. If the graph
+is unavailable or incomplete, preserve that as unknown; do not say reuse or duplication was
+verified.
+
 Assess product qualification separately from reuse and operational readiness. One meaningful
 identified consumer is sufficient for a candidate data product; additional consumers improve the
 reuse assessment but are never a qualification gate. A dataset or pipeline is not a product just

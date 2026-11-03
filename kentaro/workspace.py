@@ -36,16 +36,17 @@ MANAGED_INSTRUCTIONS_END = "<!-- kentaro-setup: managed instructions end -->"
 LEGACY_UNMODIFIED_MANAGED_INSTRUCTION_HASHES = frozenset({
     "a74bcf371039001d9eb83796b639bb62b6c1edf61c06b5f0abc79017e2594e41",
     "f74826b95483688dc1124383ee315142c157e143d31103ca4a4c3e6de05b14c0",
+    "0243acd07d19ad9eecde3100f88b1c5f5ad1a1d0c8d9d19c7c3995ee8962156d",
 })
-# These are the six Kentaro 0.2.3 skill files that gained the live-canvas rule.
-# Only the exact shipped content is upgraded; any learner edit remains protected.
+# These are exact prior shipped skill files. Only the exact shipped content is
+# upgraded; any learner edit remains protected.
 LEGACY_UNMODIFIED_SKILL_FILE_HASHES = {
     "kentaro-ai-product-design/SKILL.md": frozenset({"9830a3a1376231aad3ef1e0dbdf0c2f0e21d0bd6c9efb0b1a6d09a9b8d495164"}),
-    "kentaro-data-product-design/SKILL.md": frozenset({"e644e00929698316560e62aad638a982da0b8fcf5a8c6e9803e02353209f0966"}),
-    "kentaro-objective-design/SKILL.md": frozenset({"caac74ae5a30647366d9743da17796dc5f9d2b54da83531acb6be78fc11db2c4"}),
+    "kentaro-data-product-design/SKILL.md": frozenset({"e644e00929698316560e62aad638a982da0b8fcf5a8c6e9803e02353209f0966", "1909cdc6dcdc4c386befe6082708f06e4c001f526e651fa18055147f20c813bb"}),
+    "kentaro-objective-design/SKILL.md": frozenset({"caac74ae5a30647366d9743da17796dc5f9d2b54da83531acb6be78fc11db2c4", "4cb89681934c967d612fb28f35d9b33ac550720595a68b3c8098ad251010e5a8"}),
     "kentaro-portfolio-analysis/SKILL.md": frozenset({"91effa75c59a7287ab92f0629fc6924d18443ccdface2d52106d8608d635f1cc"}),
-    "kentaro-portfolio-readiness/SKILL.md": frozenset({"60064a364eb4c0f2309156c73793f37e2302d828d32466dd37eec6e46b1abf9b"}),
-    "kentaro-use-case-design/SKILL.md": frozenset({"8e247af1e5fd99dcd8e15e9ece501f90f6fea1cbddb440db29d198cd6532db03"}),
+    "kentaro-portfolio-readiness/SKILL.md": frozenset({"60064a364eb4c0f2309156c73793f37e2302d828d32466dd37eec6e46b1abf9b", "e981e4f300f4f67ce80c7c44d328f430347f8564f5656fe2e436173176ede075"}),
+    "kentaro-use-case-design/SKILL.md": frozenset({"8e247af1e5fd99dcd8e15e9ece501f90f6fea1cbddb440db29d198cd6532db03", "3d13a56bce07d1283d984db94724e483bd7d4e4167d060da12deffc88e17f8a7"}),
 }
 
 

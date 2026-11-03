@@ -15,6 +15,11 @@ claim counts, missing structural requirements, unresolved human decisions, and
 the next discovery question. Never use the state file as an alternative source
 of truth or rely on conversation history alone.
 
+For a connected engagement, first initialize company-graph context through the shared `kentaro
+design propose` workflow. The local state records graph provenance and whether final revalidation
+is required, not a cached company graph. Before final handover generation, allow the workflow to
+refresh the authoritative Maysano context; if it cannot, keep the connected handover gated.
+
 The refresh is a complete evaluation: preserve confirmed decisions unless the
 user explicitly corrects them; validate the mandatory Design Skeleton, KPI
 targets, links, and dependencies; assess changed and impacted objects and
