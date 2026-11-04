@@ -10,11 +10,13 @@ problem, expected outcome, KPI, baseline, target, time horizon, accountable owne
 Do not fill a missing answer with a plausible value: use a canonical Claim with `unknown`,
 `assumed`, or `proposed` status and its source reference.
 
-For a new connected engagement, initialize the company graph first through `kentaro design
-propose` (its default `--company-source auto` uses configured Maysano read access). Treat
+For a new graph-connected engagement, initialize the company graph first through `kentaro design
+propose --context-mode graph_connected`. Its default `--context-mode auto` uses configured Maysano
+read access when available but must be described as local-unverified on fallback. Treat
 retrieved objectives as existing sourced context, not proposed local objectives; inspect related
-objectives before framing a new one. If graph context is unavailable, state that this is a local,
-unverified design rather than claiming absence or duplication.
+objectives before framing a new one. If graph-connected retrieval is unavailable, state the
+blocked/source-unavailable status and offer retry, configuration, or an explicit switch to local
+design. Never claim absence or duplication.
 
 For a minimal initial business statement, first create a provisional objective and candidate
 success measures rather than asking for every KPI field. Label proposed outcome, baseline, target,

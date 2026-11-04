@@ -17,7 +17,7 @@ from .specifications import structural_completion
 
 
 STATE_FILENAME = "engagement-state.json"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 def state_path(portfolio_path: str | Path) -> Path:
@@ -81,17 +81,60 @@ def _company_graph_status(design: dict, delivery: dict | None) -> dict:
     if marker.get("mode") != "connected" or marker.get("source_kind") != "maysano":
         return {
             "mode": marker.get("mode", "not_initialized"),
-            "status": "not_authoritatively_verified",
+            "session_mode": marker.get("session_mode", "local"),
+            "status": marker.get("verification_status", "unverified"),
+            "next_action": marker.get("next_action"),
             "detail": "Local design may continue, but reuse, duplication, and dependency findings are not verified against the company graph.",
         }
     return {
         "mode": "connected",
-        "status": "revalidated_for_final_handover" if delivery and delivery.get("company_graph_revalidated") else "refresh_required_before_final_handover",
+        "session_mode": marker.get("session_mode", "auto"),
+        "status": marker.get("verification_status", "verified"),
         "source": marker.get("source_label"),
         "scope": marker.get("scope"),
         "retrieved_at": marker.get("retrieved_at"),
+        "next_action": marker.get("next_action"),
         "detail": "The complete graph remains in memory only; Kentaro retains source and coverage metadata, not a company-graph cache.",
     }
+
+
+def _decision_register(design: dict) -> dict:
+    """Expose current decision status while retaining immutable source events."""
+    entries = design.get("decisions", [])
+    superseded = {item.get("supersedes") for item in entries if isinstance(item, dict) and item.get("supersedes")}
+    graph = design.get("claims", {}).get("company_graph_context", {})
+    marker = graph.get("value", {}) if isinstance(graph, dict) else {}
+    changed_refs = set(marker.get("changed_source_references", [])) if marker.get("verification_status") == "stale" else set()
+    affected_ids = set(marker.get("affected_object_ids", [])) if marker.get("verification_status") == "stale" else set()
+    effective = []
+    for entry in entries:
+        status = entry["status"]
+        if entry["id"] in superseded:
+            status = "superseded"
+        elif status == "recorded" and (affected_ids & set(entry.get("related_object_ids", [])) or changed_refs & set(entry.get("evidence_references", []))):
+            status = "requires_reconsideration"
+        effective.append({**entry, "effective_status": status})
+    unresolved = [item for item in effective if item["effective_status"] in {"pending", "requires_reconsideration"}]
+    return {"events": effective, "unresolved": unresolved, "count": len(effective)}
+
+
+def _stage_statuses(design: dict, completion: dict, readiness_result: dict, delivery: dict | None) -> list[dict]:
+    graph = _company_graph_status(design, delivery)
+    marker = design.get("claims", {}).get("company_graph_context", {}).get("value", {})
+    graph_blocked = graph.get("session_mode") == "graph_connected" and graph.get("status") != "verified"
+    has_objective = any(item["kind"] == "objective" for item in design["objects"])
+    has_outcome = not any(item.get("code") == "missing_objective_outcome" for item in completion.get("findings", []))
+    alternatives = len(design.get("design_alternatives", []))
+    decisions = _decision_register(design)
+    return [
+        {"stage": "establish_context", "status": "blocked" if graph_blocked else ("complete" if marker else "not_started"), "outstanding_requirements": [graph.get("next_action")] if graph_blocked else [], "evidence": marker.get("source_references", []), "recommended_next_action": graph.get("next_action")},
+        {"stage": "define_business_intent", "status": "complete" if has_objective and has_outcome else "in_progress", "outstanding_requirements": [item["message"] for item in completion.get("findings", []) if item.get("code") in {"missing_objective", "missing_objective_outcome"}], "evidence": [], "recommended_next_action": "Record a sourced business outcome and objective KPI target."},
+        {"stage": "assess_existing_capabilities", "status": "complete" if marker and not graph_blocked else "in_progress", "outstanding_requirements": ["Represent graph verification limitations and reuse candidates explicitly."], "evidence": marker.get("source_references", []), "recommended_next_action": graph.get("next_action")},
+        {"stage": "develop_alternatives", "status": "complete" if alternatives else "in_progress", "outstanding_requirements": [] if alternatives else ["Record feasible alternatives and the material decision between them."], "evidence": [], "recommended_next_action": "Compare feasible alternatives before recording a material design decision."},
+        {"stage": "formalize_design", "status": "complete" if completion.get("structurally_complete") else "in_progress", "outstanding_requirements": [item["message"] for item in completion.get("findings", [])], "evidence": [], "recommended_next_action": "Resolve the next structural design requirement."},
+        {"stage": "validate_and_decide", "status": "complete" if completion.get("structurally_complete") and not decisions["unresolved"] else "in_progress", "outstanding_requirements": [f"Decision {item['id']} is {item['effective_status']}." for item in decisions["unresolved"]], "evidence": [], "recommended_next_action": "Review readiness findings and record any material human decision explicitly."},
+        {"stage": "prepare_handover", "status": "complete" if delivery and delivery.get("status") == "generated" else ("blocked" if graph_blocked else "not_started"), "outstanding_requirements": ["Final handover requires structural completion, applicable graph revalidation, and explicit local confirmation."], "evidence": [], "recommended_next_action": "Prepare review material, then obtain explicit confirmation for a final local handover."},
+    ]
 
 
 def _element_hashes(design: dict) -> dict:
@@ -150,10 +193,11 @@ def _evaluation(design: dict, checked: dict, completion: dict, readiness_result:
         reconsideration.append({"kind": "handover", "reason": "The recorded handover was generated from an older portfolio hash and is stale."})
     missing = completion.get("findings", [])
     decisions = [item for item in readiness_result["findings"] if item["category"] == "decision_dependency"]
+    recorded_decisions = _decision_register(design)["unresolved"]
     question = completion.get("discovery_questions", [None])[0] if completion.get("discovery_questions") else None
     highest_priority = (
         {"type": "missing_requirement", "finding": missing[0], "question": question}
-        if missing else ({"type": "unresolved_decision", "finding": decisions[0]} if decisions else {"type": "review_confirmation", "question": "Ask for explicit human review and confirmation before final handover generation."})
+        if missing else ({"type": "recorded_decision_requires_attention", "decision": recorded_decisions[0]} if recorded_decisions else ({"type": "unresolved_decision", "finding": decisions[0]} if decisions else {"type": "review_confirmation", "question": "Ask for explicit human review and confirmation before final handover generation."}))
     )
     return {
         "ran_for_current_interaction": True,
@@ -182,6 +226,7 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
     completion = structural_completion(design)
     readiness_result = readiness(design)
     decision_dependencies = [item for item in readiness_result["findings"] if item["category"] == "decision_dependency"]
+    decision_register = _decision_register(design)
     missing = completion.get("findings", [])
     questions = completion.get("discovery_questions", [])
     next_requirement = questions[0] if questions else (
@@ -203,7 +248,8 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
         "claim_summary": _claim_summary(design),
         "missing_requirements": missing,
         "topics_to_resolve": _topics(missing),
-        "unresolved_decisions": decision_dependencies,
+        "unresolved_decisions": decision_dependencies + decision_register["unresolved"],
+        "decision_register": decision_register,
         "next_unresolved_requirement": next_requirement,
         "structural_completion": {
             "complete": completion.get("structurally_complete", False),
@@ -211,6 +257,7 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
         },
         "handover": delivery or {"status": "not_generated", "source_hash": checked["content_hash"]},
         "company_graph_context": _company_graph_status(design, delivery),
+        "design_stages": _stage_statuses(design, completion, readiness_result, delivery),
         "evaluation": _evaluation(design, checked, completion, readiness_result, previous, delivery),
     }
 
@@ -247,6 +294,6 @@ def load_engagement_state(path: str | Path) -> dict:
         state = json.loads(Path(path).read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         raise ValueError("Engagement state must be a readable JSON file") from error
-    if state.get("schema_version") not in {1, SCHEMA_VERSION} or state.get("model") != "KentaroDesignEngagementState":
+    if state.get("schema_version") not in {1, 2, SCHEMA_VERSION} or state.get("model") != "KentaroDesignEngagementState":
         raise ValueError("Unsupported engagement state schema")
     return state

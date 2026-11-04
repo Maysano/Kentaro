@@ -7,11 +7,12 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 MODEL_NAME = "DesignPortfolio"
 CLAIM_STATUSES = {"case_fact", "user_confirmed", "proposed", "assumed", "unknown"}
 ASSESSMENT_STAGES = {"discovery", "design", "implementation", "operation"}
 KINDS = {"objective", "use_case", "ai_product", "data_product"}
+DECISION_STATUSES = {"pending", "recorded", "superseded", "requires_reconsideration"}
 RELATIONSHIPS = {
     "use-case-supports-objective": ("use_case", "objective"),
     "use-case-delivered-by-ai-product": ("use_case", "ai_product"),
@@ -91,10 +92,15 @@ def migrate_portfolio(portfolio: object) -> dict:
         migrated["model"] = MODEL_NAME
         if "case_id" in migrated:
             migrated["scenario_id"] = migrated.pop("case_id")
+    elif migrated.get("schema_version") == 2 and migrated.get("model") == MODEL_NAME:
+        # v0.2 portfolios predate the explicit decision register.  Upgrade only
+        # the local envelope; the original claims and relationships are intact.
+        migrated["schema_version"] = SCHEMA_VERSION
     # New local designs start in discovery. Older v0.2 files predate lifecycle-aware
     # reporting, so retain their facts while giving reports an explicit safe default.
     migrated.setdefault("assessment_stage", "discovery")
     migrated.setdefault("design_alternatives", [])
+    migrated.setdefault("decisions", [])
     return migrated
 
 
@@ -109,6 +115,7 @@ def create_design_portfolio(title: str, portfolio_id: str, *, revision: str = "d
         "revision": revision,
         "assessment_stage": "discovery",
         "design_alternatives": [],
+        "decisions": [],
         "claims": {},
         "objects": [],
         "relationships": [],
@@ -121,17 +128,19 @@ def validate_portfolio(portfolio: object) -> dict:
     except ValueError as error:
         return {"valid": False, "findings": [_finding("invalid_portfolio", str(error))]}
     findings: list[dict] = []
-    for field in ("schema_version", "model", "portfolio_id", "title", "revision", "assessment_stage", "design_alternatives", "claims", "objects", "relationships"):
+    for field in ("schema_version", "model", "portfolio_id", "title", "revision", "assessment_stage", "design_alternatives", "decisions", "claims", "objects", "relationships"):
         if field not in design:
             findings.append(_finding("missing_field", f"DesignPortfolio requires {field}"))
     if design.get("schema_version") != SCHEMA_VERSION or design.get("model") != MODEL_NAME:
-        findings.append(_finding("unsupported_schema", "DesignPortfolio schema_version must be 2"))
+        findings.append(_finding("unsupported_schema", "DesignPortfolio schema_version must be 3"))
     if not all(isinstance(design.get(field), str) and design[field] for field in ("portfolio_id", "title", "revision")):
         findings.append(_finding("invalid_identity", "portfolio_id, title, and revision must be nonempty strings"))
     if design.get("assessment_stage") not in ASSESSMENT_STAGES:
         findings.append(_finding("invalid_assessment_stage", "assessment_stage must be discovery, design, implementation, or operation"))
     if not isinstance(design.get("design_alternatives"), list):
         findings.append(_finding("invalid_design_alternatives", "design_alternatives must be a list"))
+    if not isinstance(design.get("decisions"), list):
+        findings.append(_finding("invalid_decisions", "decisions must be a list"))
     if not isinstance(design.get("claims"), dict) or (design["claims"] and not _claims_are_canonical(design["claims"])):
         findings.append(_finding("invalid_claims", "Portfolio claims must contain only canonical Claim values"))
     by_id: dict[str, str] = {}
@@ -195,6 +204,32 @@ def validate_portfolio(portfolio: object) -> dict:
                 values = alternative.get(field, [])
                 if not isinstance(values, list) or not all(isinstance(value, str) and value in by_id for value in values):
                     findings.append(_finding("invalid_design_alternative_members", f"{field} must contain known design object IDs", alternative["id"]))
+    if isinstance(design.get("decisions"), list):
+        decision_ids = set()
+        known_decisions = set()
+        for decision in design["decisions"]:
+            required = ("id", "subject", "scope", "resolution", "rationale", "actor", "decided_at", "portfolio_revision", "status")
+            if not isinstance(decision, dict) or not all(isinstance(decision.get(field), str) and decision[field] for field in required):
+                findings.append(_finding("invalid_decision", "Every decision needs id, subject, scope, resolution, rationale, actor, decided_at, portfolio_revision, and status"))
+                continue
+            if decision["id"] in decision_ids:
+                findings.append(_finding("duplicate_decision", "Decision IDs must be unique", decision["id"]))
+            decision_ids.add(decision["id"])
+            if decision["status"] not in DECISION_STATUSES:
+                findings.append(_finding("invalid_decision_status", "Decision status is unsupported", decision["id"]))
+            related_ids = decision.get("related_object_ids", [])
+            if not isinstance(related_ids, list) or not all(isinstance(value, str) and value in by_id for value in related_ids):
+                findings.append(_finding("invalid_decision_links", "Decision related_object_ids must reference known objects", decision["id"]))
+            alternatives = decision.get("alternatives", [])
+            evidence = decision.get("evidence_references", [])
+            if not isinstance(alternatives, list) or not all(isinstance(value, str) and value for value in alternatives):
+                findings.append(_finding("invalid_decision_alternatives", "Decision alternatives must be nonempty strings", decision["id"]))
+            if not isinstance(evidence, list) or not all(isinstance(value, str) and value for value in evidence):
+                findings.append(_finding("invalid_decision_evidence", "Decision evidence_references must be nonempty strings", decision["id"]))
+            supersedes = decision.get("supersedes")
+            if supersedes is not None and (not isinstance(supersedes, str) or supersedes not in known_decisions):
+                findings.append(_finding("invalid_decision_supersedes", "Decision supersedes must reference an earlier decision", decision["id"]))
+            known_decisions.add(decision["id"])
     return {"valid": not findings, "findings": findings, "content_hash": content_hash(design), "portfolio": design}
 
 
@@ -227,6 +262,46 @@ def add_relationship(portfolio: dict, relationship_id: str, from_id: str, to_id:
     if provenance is not None:
         relationship["provenance"] = deepcopy(provenance)
     updated["relationships"].append(relationship)
+    return updated
+
+
+def record_decision(
+    portfolio: dict,
+    decision_id: str,
+    *,
+    subject: str,
+    scope: str,
+    resolution: str,
+    rationale: str,
+    actor: str,
+    status: str = "recorded",
+    related_object_ids: list[str] | None = None,
+    alternatives: list[str] | None = None,
+    evidence_references: list[str] | None = None,
+    supersedes: str | None = None,
+    decided_at: str | None = None,
+) -> dict:
+    """Append an explicit human business-design decision without mutating history."""
+    if status not in {"pending", "recorded", "requires_reconsideration"}:
+        raise ValueError("New decisions must be pending, recorded, or require reconsideration")
+    updated = migrate_portfolio(portfolio)
+    decision = {
+        "id": decision_id,
+        "subject": subject,
+        "scope": scope,
+        "related_object_ids": list(related_object_ids or []),
+        "alternatives": list(alternatives or []),
+        "resolution": resolution,
+        "rationale": rationale,
+        "evidence_references": list(evidence_references or []),
+        "actor": actor,
+        "decided_at": decided_at or datetime.now(timezone.utc).isoformat(),
+        "portfolio_revision": updated["revision"],
+        "status": status,
+    }
+    if supersedes:
+        decision["supersedes"] = supersedes
+    updated["decisions"].append(decision)
     return updated
 
 

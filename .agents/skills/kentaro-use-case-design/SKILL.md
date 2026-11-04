@@ -9,8 +9,8 @@ Start from one or more local objectives. Ask what user or consumer makes which d
 workflow changes, what value is expected, which constraints apply, and how success is assessed.
 Record every supplied or missing fact as a canonical Claim; do not infer AI involvement.
 
-For a new connected engagement, initialize and retain the active-operation company-graph context
-before proposing use cases. Check sourced related use cases, consumers, decisions, and documented
+For a new graph-connected engagement, initialize and retain the active-operation company-graph context
+with `--context-mode graph_connected` before proposing use cases. Check sourced related use cases, consumers, decisions, and documented
 links first. A lexical candidate is a prompt to assess reuse or overlap, not evidence of a duplicate.
 
 When the owner gives only a short problem statement, propose plausible workflow options as

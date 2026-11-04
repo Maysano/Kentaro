@@ -78,6 +78,81 @@ def _readiness_finding(
     }
 
 
+def _graph_finding(*, code: str, category: str, severity: str, stage: str, explanation: str, resolution: str, references: list[str]) -> dict:
+    key = f"graph|{code}|{category}|{stage}|{'|'.join(sorted(references))}"
+    return {
+        "finding_id": f"finding:{sha256(key.encode('utf-8')).hexdigest()[:16]}",
+        "affected_object_id": "portfolio",
+        "category": category,
+        "severity": severity,
+        "assessment_stage": stage,
+        "field": code,
+        "explanation": explanation,
+        "required_resolution": resolution,
+        "source_claim_ids": ["claim:portfolio:company_graph_context"],
+        "dependency_references": references,
+    }
+
+
+def _graph_context_findings(design: dict, stage: str) -> list[dict]:
+    claim = design.get("claims", {}).get("company_graph_context")
+    if not is_claim(claim) or not isinstance(claim.get("value"), dict):
+        return []
+    marker = claim["value"]
+    status = marker.get("verification_status", "unverified")
+    source_refs = [
+        f"{item.get('source_ref')}@{item.get('source_revision', 'not supplied')}"
+        for item in marker.get("source_references", []) if isinstance(item, dict) and item.get("source_ref")
+    ]
+    findings = []
+    if status in {"unverified", "source_unavailable"}:
+        category = "implementation_blocker" if marker.get("session_mode") == "graph_connected" and stage in {"implementation", "operation"} else "design_gap"
+        findings.append(_graph_finding(
+            code="company_graph_unverified", category=category, severity="critical" if category == "implementation_blocker" else "high", stage=stage,
+            explanation="Company-graph conclusions are not verified; local design may continue but reuse and dependency conclusions are not established organizational facts.",
+            resolution=marker.get("next_action") or "Retry graph retrieval or explicitly continue as local design.", references=source_refs,
+        ))
+    elif status == "stale":
+        findings.append(_graph_finding(
+            code="company_graph_reconsideration_required", category="decision_dependency", severity="high", stage=stage,
+            explanation="Revalidation detected changed graph evidence affecting local reuse or dependency conclusions.",
+            resolution="Review affected conclusions and record an explicit superseding decision where the changed evidence materially alters the design.", references=source_refs,
+        ))
+    if marker.get("match_count", 0):
+        findings.append(_graph_finding(
+            code="possible_data_product_reuse", category="decision_dependency", severity="medium", stage=stage,
+            explanation=f"{marker['match_count']} source-backed candidate match(es) may address a similar business need; this is advisory, not a duplication judgment.",
+            resolution="Review the candidate source references for reuse, ownership, consumer fit, and information suitability before creating a duplicate product.", references=source_refs,
+        ))
+    return findings
+
+
+def dependency_assessment(design: dict) -> list[dict]:
+    """Classify local dependency assertions without promoting them to graph facts."""
+    context = design.get("claims", {}).get("company_graph_context", {})
+    marker = context.get("value", {}) if is_claim(context) else {}
+    graph_verified = marker.get("verification_status") == "verified" and marker.get("source_kind") == "maysano"
+    dependencies = []
+    kinds = {"product-depends-on-product", "use-case-requires-data-product", "ai-product-consumes-data-product", "use-case-delivered-by-ai-product"}
+    for edge in design.get("relationships", []):
+        if edge.get("kind") not in kinds:
+            continue
+        provenance = edge.get("provenance", {})
+        source_id = provenance.get("source_id") if is_claim(provenance) else None
+        if graph_verified and isinstance(source_id, str) and source_id.startswith("maysano:"):
+            status = "verified_graph_relationship"
+        elif is_claim(provenance):
+            status = "proposed_local_relationship"
+        else:
+            status = "inferred_or_unproven_relationship"
+        dependencies.append({
+            "relationship_id": edge["id"], "from_id": edge["from_id"], "to_id": edge["to_id"],
+            "status": status,
+            "source_reference": f"{source_id}@{provenance.get('source_revision')}" if source_id else None,
+        })
+    return dependencies
+
+
 def readiness(portfolio: dict, *, assessment_stage: str | None = None) -> dict:
     check = validate_portfolio(portfolio)
     if not check["valid"]:
@@ -91,6 +166,21 @@ def readiness(portfolio: dict, *, assessment_stage: str | None = None) -> dict:
         for field, claim in iter_claims(claims):
             if claim["status"] not in CONFIRMED_CLAIM_STATUSES:
                 findings.append(_readiness_finding(object_id=object_id, item_kind=item_kind, field=field, claim=claim, stage=stage))
+    findings.extend(_graph_context_findings(check["portfolio"], stage))
+    for dependency in dependency_assessment(check["portfolio"]):
+        if dependency["status"] == "verified_graph_relationship":
+            continue
+        category = "implementation_blocker" if stage in {"implementation", "operation"} else "design_gap"
+        findings.append({
+            **_graph_finding(
+                code="unverified_dependency", category=category, severity="high" if category == "implementation_blocker" else "medium", stage=stage,
+                explanation=f"Dependency {dependency['relationship_id']} is {dependency['status'].replace('_', ' ')} rather than a verified graph relationship.",
+                resolution="Verify the dependency against Maysano or retain it explicitly as a proposed local relationship with its supporting evidence.",
+                references=[dependency["source_reference"]] if dependency["source_reference"] else [],
+            ),
+            "affected_object_id": dependency["from_id"],
+            "related_relationship_id": dependency["relationship_id"],
+        })
     findings.sort(key=lambda item: (FINDING_CATEGORY_ORDER[item["category"]], SEVERITY_ORDER[item["severity"]], item["affected_object_id"], item["field"]))
     category_counts = dict(Counter(item["category"] for item in findings))
     severity_counts = dict(Counter(item["severity"] for item in findings))
@@ -180,7 +270,7 @@ def analysis(portfolio: dict, *, assessment_stage: str | None = None) -> dict:
     reusable = [{"object_id": object_id, "name": objects[object_id]["claims"]["name"]["value"], "used_by": count} for object_id, count in sorted(usage.items()) if count > 1]
     readiness_result = readiness(design, assessment_stage=assessment_stage)
     data_products = [item for item in design["objects"] if item["kind"] == "data_product"]
-    return {"valid": True, "portfolio_hash": check["content_hash"], "assessment_stage": readiness_result["assessment_stage"], "object_counts": dict(Counter(item["kind"] for item in design["objects"])), "relationship_count": len(design["relationships"]), "reuse_opportunities": reusable, "data_product_qualification": [_data_product_qualification(design, item) for item in data_products], "reuse_assessment": [_reuse_assessment(design, item) for item in data_products], "readiness": readiness_result["summary"]}
+    return {"valid": True, "portfolio_hash": check["content_hash"], "assessment_stage": readiness_result["assessment_stage"], "object_counts": dict(Counter(item["kind"] for item in design["objects"])), "relationship_count": len(design["relationships"]), "reuse_opportunities": reusable, "data_product_qualification": [_data_product_qualification(design, item) for item in data_products], "reuse_assessment": [_reuse_assessment(design, item) for item in data_products], "dependency_assessment": dependency_assessment(design), "readiness": readiness_result["summary"]}
 
 
 def executive_summary(portfolio: dict, assessment: dict) -> str:

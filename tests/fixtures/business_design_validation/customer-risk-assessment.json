@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "kind": "KentaroBusinessDesignValidationCase",
+  "id": "customer-risk-assessment-v1",
+  "title": "Customer risk-assessment improvement",
+  "synthetic": true,
+  "purpose": "Validate an ordinary Business Owner journey through graph-connected design, human decisions, completion gates, and graph revalidation.",
+  "extension_rules": [
+    "Add a new turn rather than rewriting an existing prompt or expected outcome.",
+    "Keep graph records synthetic and retain only source-safe identifiers, versions, and timestamps in expected persisted state.",
+    "Use ordinary Business Owner language; no turn may require a command, schema field, or agent-specific instruction.",
+    "Add capability-specific assertions under expected without changing the meaning of prior turns."
+  ],
+  "graph_snapshots": {
+    "initial": {
+      "scope": "synthetic-bank-a",
+      "retrieved_at": "2026-11-04T09:00:00+00:00",
+      "source_label": "Synthetic Maysano bank graph",
+      "records": [
+        {"id": "objective-risk-turnaround", "kind": "objective", "title": "Customer risk-assessment turnaround", "version": "3", "source_ref": "maysano:/business-objectives/objective-risk-turnaround"},
+        {"id": "usecase-risk-preparation", "kind": "use_case", "title": "Customer risk-assessment preparation", "version": "4", "source_ref": "maysano:/business-use-cases/usecase-risk-preparation"},
+        {"id": "product-customer-profile", "kind": "data_product", "title": "Customer identity and profile context", "version": "7", "source_ref": "maysano:/products/product-customer-profile"},
+        {"id": "product-risk-case", "kind": "data_product", "title": "Customer risk-assessment case context", "version": "2", "source_ref": "maysano:/products/product-risk-case"}
+      ],
+      "relationships": [
+        {"id": "objective-usecase", "source": "objective-risk-turnaround", "target": "usecase-risk-preparation", "type": "related_use_case", "version": "3", "source_ref": "maysano:/business-objectives/objective-risk-turnaround#links.useCases"},
+        {"id": "usecase-product", "source": "usecase-risk-preparation", "target": "product-risk-case", "type": "related_data_product", "version": "2", "source_ref": "maysano:/business-use-cases/usecase-risk-preparation#links.products"}
+      ],
+      "limitations": ["Synthetic fixture; no live Maysano content is used."]
+    },
+    "revised": {
+      "scope": "synthetic-bank-a",
+      "retrieved_at": "2026-11-04T11:00:00+00:00",
+      "source_label": "Synthetic Maysano bank graph",
+      "records": [
+        {"id": "objective-risk-turnaround", "kind": "objective", "title": "Customer risk-assessment turnaround", "version": "3", "source_ref": "maysano:/business-objectives/objective-risk-turnaround"},
+        {"id": "usecase-risk-preparation", "kind": "use_case", "title": "Customer risk-assessment preparation", "version": "5", "source_ref": "maysano:/business-use-cases/usecase-risk-preparation"},
+        {"id": "product-customer-profile", "kind": "data_product", "title": "Customer identity and profile context", "version": "7", "source_ref": "maysano:/products/product-customer-profile"},
+        {"id": "product-risk-case", "kind": "data_product", "title": "Customer risk-assessment case context", "version": "3", "source_ref": "maysano:/products/product-risk-case"}
+      ],
+      "relationships": [
+        {"id": "objective-usecase", "source": "objective-risk-turnaround", "target": "usecase-risk-preparation", "type": "related_use_case", "version": "3", "source_ref": "maysano:/business-objectives/objective-risk-turnaround#links.useCases"},
+        {"id": "usecase-product", "source": "usecase-risk-preparation", "target": "product-risk-case", "type": "related_data_product", "version": "3", "source_ref": "maysano:/business-use-cases/usecase-risk-preparation#links.products"}
+      ],
+      "limitations": ["Synthetic fixture; no live Maysano content is used."]
+    }
+  },
+  "turns": [
+    {"id": "start", "stage": "establish_context", "actor": "Business Owner", "prompt": "Our bank's customer risk assessments take too long. We want to improve the process, and we are considering AI support.", "expected": {"graph_context": "verified", "existing_kinds": ["objective", "use_case", "data_product"], "next_stage": "define_business_intent"}},
+    {"id": "incomplete", "stage": "define_business_intent", "actor": "Business Owner", "prompt": "I do not know the target, owner, or source systems yet. Please keep going with what we have.", "expected": {"draft_remains_editable": true, "missing_information_visible": true, "next_stage": "assess_existing_capabilities"}},
+    {"id": "reuse", "stage": "assess_existing_capabilities", "actor": "Business Owner", "prompt": "Do we already have anything useful, or would we be creating another risk data product?", "expected": {"reuse_candidate_advisory": true, "unverified_dependencies_visible": true, "next_stage": "develop_alternatives"}},
+    {"id": "alternatives", "stage": "develop_alternatives", "actor": "Business Owner", "prompt": "Show me a non-AI option and an AI-assisted option, including what I would remain responsible for.", "expected": {"minimum_alternatives": 2, "human_decision_required": true, "next_stage": "formalize_design"}},
+    {"id": "decision", "stage": "validate_and_decide", "actor": "Business Owner", "prompt": "For the pilot, choose human-in-the-loop AI preparation support. Risk assessors must continue making every case decision.", "expected": {"explicit_decision": true, "decision_status": "recorded"}},
+    {"id": "change_direction", "stage": "validate_and_decide", "actor": "Business Owner", "prompt": "I changed my mind. Start with the information-product and workflow option; defer the AI assistant until we have better evidence.", "expected": {"supersedes": "decision-risk-ai-pilot", "history_preserved": true}},
+    {"id": "skip", "stage": "prepare_handover", "actor": "Business Owner", "prompt": "Skip the remaining detail and give me the final handover now.", "expected": {"final_handover_blocked_until": ["structural_completion", "explicit_confirmation"]}},
+    {"id": "complete", "stage": "formalize_design", "actor": "Business Owner", "prompt": "The first pilot serves risk assessors. The owner is Risk Operations. Target a 30 percent reduction in median assessment turnaround within one quarter, while retaining human decisions.", "expected": {"structured_specifications": ["ODPS", "ODPC", "ODPG"], "next_stage": "prepare_handover"}},
+    {"id": "graph_change", "stage": "validate_and_decide", "actor": "Business Owner", "prompt": "Please refresh the company context before we hand over the design.", "expected": {"verification_status": "stale", "affected_elements_identified": true, "reconsideration_required": true}},
+    {"id": "confirm", "stage": "prepare_handover", "actor": "Business Owner", "prompt": "I have reviewed the completed design and unresolved issues. Prepare the final handover for its intended builder.", "expected": {"explicit_confirmation": true, "handover_status": "reviewed"}}
+  ]
+}

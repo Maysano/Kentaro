@@ -58,6 +58,11 @@ def decision_context(portfolio: dict, *, assessment_stage: str | None = None) ->
     design = check["portfolio"]
     assessment = readiness(design, assessment_stage=assessment_stage)
     objects = design["objects"]
+    superseded = {item.get("supersedes") for item in design["decisions"] if item.get("supersedes")}
+    registered_decisions = [
+        {**item, "effective_status": "superseded" if item["id"] in superseded else item["status"]}
+        for item in design["decisions"]
+    ]
     context = {
         "schema_version": HANDOVER_SCHEMA_VERSION,
         "model": "DecisionContext",
@@ -94,7 +99,7 @@ def decision_context(portfolio: dict, *, assessment_stage: str | None = None) ->
                 "dependency_references": finding["dependency_references"],
             }
             for finding in assessment["findings"]
-        ],
+        ] + registered_decisions,
         "constraints": [
             {
                 "affected_object_id": finding["affected_object_id"],
@@ -107,7 +112,7 @@ def decision_context(portfolio: dict, *, assessment_stage: str | None = None) ->
         ],
         "outstanding_decisions": [
             finding["finding_id"] for finding in assessment["findings"] if finding["category"] == "decision_dependency"
-        ],
+        ] + [item["id"] for item in registered_decisions if item["effective_status"] in {"pending", "requires_reconsideration"}],
         "limitations": [
             "This is a local design-derived draft, not a Maysano record or approval.",
             "Claims retain their source status; proposed, assumed, and unknown values are not established evidence.",
@@ -127,6 +132,8 @@ def _evidence_manifest(design: dict) -> dict:
     for edge in design["relationships"]:
         if edge.get("provenance"):
             entries.append({"claim_id": f"relationship:{edge['id']}", "relationship_id": edge["id"], "claim": edge["provenance"]})
+    for decision in design.get("decisions", []):
+        entries.append({"claim_id": f"decision:{decision['id']}", "decision_id": decision["id"], "evidence_references": decision.get("evidence_references", [])})
     return {
         "schema_version": 1,
         "model": "KentaroEvidenceManifest",

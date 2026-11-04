@@ -2,21 +2,56 @@
 
 ## Connected company-graph context
 
-When a workspace has an explicitly configured Maysano read connection, `kentaro design
-propose` automatically initializes its first design operation from the existing company
-graph. It reuses the documented read-only products, business-objectives, business-use-cases,
-and relationship retrieval; it does not add an API or any write capability. Existing records
-remain sourced context, while every new DesignPortfolio object remains proposed or unknown
-until a human confirms it.
+`kentaro design propose` has explicit context modes. `auto` is the compatible default: it uses a
+configured Maysano read connection when available and otherwise creates a visibly local,
+unverified design. `local` never attempts graph verification. `graph_connected` requires a
+successful live Maysano read before Kentaro represents the design as graph-grounded; on failure it
+remains `source_unavailable` with a retry/configure/switch-to-local next action. Existing records
+remain sourced context, while every new DesignPortfolio object remains proposed or unknown until a
+human confirms it.
+
+```shell
+kentaro design propose --context-mode graph_connected \
+  --business-input "Reduce customer risk-assessment delays." \
+  --output .kentaro/workspace/design/risk.json
+kentaro design refresh-context --input .kentaro/workspace/design/risk.json
+```
 
 The live API's `Cache-Control: no-store` policy means the full graph is held only for the
 active operation. Kentaro stores only context provenance (source, scope, retrieval time,
 coverage counts, and limitations) in the ignored local design workspace, not a cached
-company graph. The operation identifies lexical candidates for reuse or overlap and requires
+company graph. Kentaro retains source references, record revisions when supplied, retrieval
+times, verification state, and comparison results. The operation identifies lexical candidates
+for reuse or overlap and requires
 their consumer, boundary, authority, access, quality, and service suitability to be evaluated;
 a candidate does not prove equivalence or duplication. If context is unavailable, local design
 continues with an explicit unverified status. A connected Maysano design is freshly re-read
-before final handover export; unavailable revalidation keeps that export gated.
+before final handover export; unavailable revalidation keeps that export gated. A changed source
+revision marks only affected local reuse/dependency conclusions as `stale` for review; it never
+discards the DesignPortfolio or its decision history. The stale state remains a handover gate until
+a linked, explicit human decision records the reconsideration.
+
+## Human decision register and lifecycle state
+
+`DesignPortfolio` schema v3 adds an append-only local `decisions` register. A decision is a
+business-design event, not an approval or authenticated identity record. It stores its supplied
+actor label, subject, scope, alternatives, resolution, rationale, evidence references, related
+objects, timestamp, source portfolio revision, and optional superseded decision ID. A later
+decision supersedes an earlier event without changing the earlier event.
+
+```shell
+kentaro design record-decision --input .kentaro/workspace/design/risk.json \
+  --id risk-scope-v1 --subject "First risk-assessment scope" --scope "Retail pilot" \
+  --alternative "Rules-first" --alternative "Human-in-the-loop assistant" \
+  --resolution "Start with rules-first" --rationale "Evidence coverage is incomplete" \
+  --evidence-reference "maysano:/products/risk-context" --actor "Business Owner"
+```
+
+The regenerated `engagement-state.json` presents seven flexible lifecycle stages: establish
+context, define business intent, assess existing capabilities, develop alternatives, formalize the
+design, validate and decide, and prepare handover. Each exposes completion state, outstanding
+requirements, evidence, unresolved decisions, and a recommended next action. These are guidance
+and completion gates, not a rigid conversational wizard: incomplete local drafts remain editable.
 
 ## Decision Context and delivery handover
 
@@ -108,7 +143,9 @@ Every material attribute is a canonical Claim, including nested business-informa
 
 The model supports multiple objectives, multiple use cases per objective, reuse of AI and data
 products, independent owners and lifecycle states, and use cases with `ai_involvement: none`.
-Validation enforces semantic relationship endpoints and Claim provenance. New portfolios record
+Validation enforces semantic relationship endpoints, Claim provenance, and append-only decision
+references. Readiness reports additionally distinguish graph verification state, advisory reuse
+candidates, and local or inferred dependencies from verified graph relationships. New portfolios record
 `assessment_stage: discovery`; reports and canvas rendering can use that stage or an explicit
 `--assessment-stage` override for discovery, design, implementation, or operation.
 

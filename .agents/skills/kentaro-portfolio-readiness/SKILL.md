@@ -15,10 +15,14 @@ claim counts, missing structural requirements, unresolved human decisions, and
 the next discovery question. Never use the state file as an alternative source
 of truth or rely on conversation history alone.
 
-For a connected engagement, first initialize company-graph context through the shared `kentaro
-design propose` workflow. The local state records graph provenance and whether final revalidation
-is required, not a cached company graph. Before final handover generation, allow the workflow to
-refresh the authoritative Maysano context; if it cannot, keep the connected handover gated.
+Start every engagement by making the context mode explicit. `graph_connected` requires a successful
+live Maysano read before graph-grounded reasoning; if it fails, report `source_unavailable` and ask
+the user to retry, configure Maysano, or explicitly switch to local design. `auto` may continue as
+local-unverified; `local` never claims graph verification. The local state records only safe graph
+provenance, revision/comparison metadata, and whether revalidation is required—not a cached company
+graph. Run `kentaro design refresh-context --input <portfolio>` when verification is requested and
+allow final handover to refresh the authoritative Maysano context. Keep a graph-connected handover
+gated when retrieval is unavailable or changed evidence requires reconsideration.
 
 The refresh is a complete evaluation: preserve confirmed decisions unless the
 user explicitly corrects them; validate the mandatory Design Skeleton, KPI
@@ -61,6 +65,12 @@ same unverified rule can be a design gap during discovery and an implementation 
 automatic execution is proposed. Deduplicate the same underlying issue. Frame readiness findings
 as decisions for accountable humans. Never claim approval, compliance, business value, data
 availability, safety, or production readiness from a valid schema or report.
+
+Use the portfolio's append-only `decisions` register for material human choices. Present alternatives,
+recommendation consequences, and source evidence first; record a decision only after explicit human
+input with `kentaro design record-decision`. A later change must supersede the earlier decision rather
+than overwrite it. AI recommendations, lexical reuse candidates, and inferred dependencies never become
+human decisions or established organizational facts on their own.
 
 For an initial minimal-input proposal, retain unknowns as discovery-stage gaps and decisions, then
 give a concise executive summary, canvas, and suggested review package without waiting for

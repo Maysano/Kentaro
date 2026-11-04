@@ -68,7 +68,8 @@ class CompanyContextTests(unittest.TestCase):
         self.assertIn("Evaluate the matched existing data product", findings["recommendation"])
         self.assertEqual(portfolio["objects"], [])
         self.assertEqual(portfolio["claims"]["company_graph_context"]["value"]["match_count"], 1)
-        self.assertNotIn("existing-risk", str(portfolio["claims"]["company_graph_context"]["value"]))
+        marker = portfolio["claims"]["company_graph_context"]["value"]
+        self.assertEqual(marker["source_references"], [{"source_ref": "maysano:/products/existing-risk", "source_revision": "not supplied", "verified_at": "2026-11-03T00:00:00+00:00"}])
         self.assertTrue(validate_portfolio(portfolio)["valid"])
         canvas = render_canvas(portfolio)
         self.assertIn("Company graph", canvas)

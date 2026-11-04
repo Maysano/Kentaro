@@ -1,5 +1,27 @@
 # Kentaro release notes
 
+## 0.2.10 — Stateful business-design lifecycle (4 November 2026)
+
+Kentaro 0.2.10 strengthens local, graph-connected business design without changing
+Kentaro's read-only Maysano boundary. A design session can now explicitly operate in
+`auto`, `local`, or `graph_connected` context mode. Connected sessions preserve only
+bounded source provenance and freshness information, never company-graph payloads;
+they can be revalidated before important handover decisions.
+
+The local DesignPortfolio now keeps append-only human decision events alongside
+confirmed, proposed, and unknown claims. Its engagement state evaluates the seven
+business-design stages, identifies affected elements when graph evidence changes, and
+surfaces the next unresolved requirement rather than treating a valid schema or canvas
+as completion. Readiness reporting adds actionable advisory findings for potential
+reuse, unresolved dependencies, missing measurable outcomes, and confirmation gates.
+
+The release includes a reusable customer risk-assessment end-to-end validation case.
+It exercises ordinary Business Owner prompts, incomplete input, alternatives, explicit
+decisions, changed graph evidence, stage-skipping, and final confirmation. The checked-in
+example includes the source DesignPortfolio, a rendered HTML canvas, and a validated
+handover ZIP. These remain local review artefacts: they do not create Maysano records,
+establish approval, or demonstrate implementation or production readiness.
+
 ## 0.2.9 — Preserve the packaged README (30 October 2026)
 
 Kentaro 0.2.9 corrects a distribution-layout collision exposed during 0.2.8

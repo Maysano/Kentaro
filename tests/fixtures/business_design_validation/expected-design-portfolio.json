@@ -1,0 +1,1020 @@
+{
+  "assessment_stage": "discovery",
+  "claims": {
+    "ai_product_opportunity": {
+      "asserted_at": "2026-11-04T11:55:00.632832+00:00",
+      "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+      "source_id": "business-input:613dbae81d5390ae",
+      "source_revision": "minimal-input-v1",
+      "status": "proposed",
+      "value": "A human-in-the-loop preparation assistant is a candidate option alongside information and workflow improvement; it must not score customers, interpret policy, make case decisions, approve outcomes, or change customer records."
+    },
+    "company_graph_context": {
+      "asserted_at": "2026-11-04T11:55:00.637270+00:00",
+      "derivation_input_hash": "company-graph-revalidation-v1",
+      "source_id": "maysano:company-graph",
+      "source_revision": "2026-11-04T11:00:00+00:00",
+      "status": "case_fact",
+      "value": {
+        "affected_object_ids": [
+          "data-customer-profile-context",
+          "data-assessment-evidence",
+          "data-risk-assessment-case-context"
+        ],
+        "affected_relationship_ids": [
+          "risk-preparation-profile",
+          "risk-preparation-evidence",
+          "risk-preparation-case-context",
+          "ai-profile-context",
+          "ai-assessment-evidence",
+          "ai-case-context"
+        ],
+        "availability": "available",
+        "changed_source_references": [
+          "maysano:/business-use-cases/usecase-risk-preparation",
+          "maysano:/products/product-risk-case"
+        ],
+        "last_revalidation_at": "2026-11-04T11:00:00+00:00",
+        "limitations": [
+          "Synthetic fixture; no live Maysano content is used."
+        ],
+        "match_count": 4,
+        "mode": "connected",
+        "next_action": "Graph evidence was reconsidered through the recorded human decision.",
+        "reconsidered_by_decision": "decision-graph-reconsidered",
+        "record_counts": {
+          "data_product": 2,
+          "objective": 1,
+          "use_case": 1
+        },
+        "relationship_count": 2,
+        "requires_revalidation": false,
+        "retrieved_at": "2026-11-04T11:00:00+00:00",
+        "reuse_status": "candidates_require_evaluation",
+        "scope": "synthetic-bank-a",
+        "session_mode": "graph_connected",
+        "source_kind": "maysano",
+        "source_label": "Synthetic Maysano bank graph",
+        "source_references": [
+          {
+            "source_ref": "maysano:/products/product-risk-case",
+            "source_revision": "3",
+            "verified_at": "2026-11-04T11:00:00+00:00"
+          },
+          {
+            "source_ref": "maysano:/business-objectives/objective-risk-turnaround",
+            "source_revision": "3",
+            "verified_at": "2026-11-04T11:00:00+00:00"
+          },
+          {
+            "source_ref": "maysano:/business-use-cases/usecase-risk-preparation",
+            "source_revision": "5",
+            "verified_at": "2026-11-04T11:00:00+00:00"
+          },
+          {
+            "source_ref": "maysano:/products/product-customer-profile",
+            "source_revision": "7",
+            "verified_at": "2026-11-04T11:00:00+00:00"
+          }
+        ],
+        "verification_status": "verified"
+      }
+    },
+    "initial_business_input": {
+      "asserted_at": "2026-11-04T11:55:00.632543+00:00",
+      "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+      "source_id": "business-input:613dbae81d5390ae",
+      "source_revision": "minimal-input-v1",
+      "status": "user_confirmed",
+      "value": "Our bank's customer risk assessments take too long. We want to improve the process, and we are considering AI support."
+    },
+    "proposal_boundary": {
+      "asserted_at": "2026-11-04T11:55:00.632830+00:00",
+      "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+      "source_id": "business-input:613dbae81d5390ae",
+      "source_revision": "minimal-input-v1",
+      "status": "proposed",
+      "value": "Candidate business-design pattern only. Assessment policy, source systems, information authority, access, and AI suitability require human confirmation."
+    }
+  },
+  "decisions": [
+    {
+      "actor": "Business Owner",
+      "alternatives": [
+        "Domain information products and workflow improvement",
+        "Human-in-the-loop AI preparation support"
+      ],
+      "decided_at": "2026-11-04T11:55:00.637040+00:00",
+      "evidence_references": [],
+      "id": "decision-risk-ai-pilot",
+      "portfolio_revision": "draft-v1",
+      "rationale": "Risk assessors retain every case decision",
+      "related_object_ids": [
+        "ai-risk-preparation-assistant"
+      ],
+      "resolution": "Use human-in-the-loop AI preparation support",
+      "scope": "Customer risk assessment",
+      "status": "recorded",
+      "subject": "Pilot approach"
+    },
+    {
+      "actor": "Business Owner",
+      "alternatives": [
+        "Domain information products and workflow improvement",
+        "Human-in-the-loop AI preparation support"
+      ],
+      "decided_at": "2026-11-04T11:55:00.637139+00:00",
+      "evidence_references": [],
+      "id": "decision-risk-information-first",
+      "portfolio_revision": "draft-v1",
+      "rationale": "Defer AI until evidence coverage improves",
+      "related_object_ids": [
+        "data-risk-assessment-case-context"
+      ],
+      "resolution": "Start with information products and workflow improvement",
+      "scope": "Customer risk assessment",
+      "status": "recorded",
+      "subject": "Pilot approach",
+      "supersedes": "decision-risk-ai-pilot"
+    },
+    {
+      "actor": "Business Owner",
+      "alternatives": [
+        "Proceed unchanged",
+        "Revisit data-product reuse"
+      ],
+      "decided_at": "2026-11-04T11:55:00.637372+00:00",
+      "evidence_references": [
+        "maysano:/products/product-risk-case"
+      ],
+      "id": "decision-graph-reconsidered",
+      "portfolio_revision": "draft-v1",
+      "rationale": "The updated graph relationship does not change the human decision boundary",
+      "related_object_ids": [
+        "data-risk-assessment-case-context"
+      ],
+      "resolution": "Proceed with the information-product pilot after reviewing updated case-context evidence",
+      "scope": "Customer risk-assessment pilot",
+      "status": "recorded",
+      "subject": "Changed company context"
+    }
+  ],
+  "design_alternatives": [
+    {
+      "id": "domain-information-first",
+      "name": "Domain information products and workflow improvement",
+      "object_ids": [
+        "usecase-risk-preparation",
+        "data-customer-profile-context",
+        "data-assessment-evidence",
+        "data-risk-assessment-case-context"
+      ],
+      "shared_object_ids": []
+    },
+    {
+      "id": "ai-assisted-preparation",
+      "name": "Human-in-the-loop AI preparation support",
+      "object_ids": [
+        "usecase-risk-preparation",
+        "ai-risk-preparation-assistant"
+      ],
+      "shared_object_ids": [
+        "data-customer-profile-context",
+        "data-assessment-evidence",
+        "data-risk-assessment-case-context"
+      ]
+    }
+  ],
+  "model": "DesignPortfolio",
+  "objects": [
+    {
+      "claims": {
+        "business_kpi": {
+          "baseline": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 10
+          },
+          "measurement_period": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "quarterly"
+          },
+          "name": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "Median assessment turnaround reduction"
+          },
+          "target": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 30
+          },
+          "unit": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "percent"
+          }
+        },
+        "kpi": {
+          "asserted_at": "2026-11-04T11:55:00.632839+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": {
+            "information_availability": "unknown baseline",
+            "turnaround_time": "unknown baseline"
+          }
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.632837+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.632834+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Improve customer risk-assessment turnaround"
+        },
+        "outcome": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Reduce median customer risk-assessment turnaround by 30 percent within one quarter"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.632836+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.632835+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Reduce avoidable delay while retaining accountable human risk decisions"
+        }
+      },
+      "id": "objective-customer-risk",
+      "kind": "objective"
+    },
+    {
+      "claims": {
+        "ai_involvement": {
+          "asserted_at": "2026-11-04T11:55:00.632868+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "candidate human-in-the-loop preparation support; suitability to be confirmed"
+        },
+        "consumer": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Risk assessors"
+        },
+        "data_capabilities": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Traceable customer profile, due-diligence evidence, and risk-case context"
+        },
+        "decision": {
+          "asserted_at": "2026-11-04T11:55:00.632869+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Human risk assessor decides whether the customer assessment is complete and acceptable"
+        },
+        "expected_business_contribution": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Reduce median assessment turnaround while risk assessors retain every case decision"
+        },
+        "human_oversight": {
+          "asserted_at": "2026-11-04T11:55:00.632870+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Required; the assessor retains all case, policy, and approval decisions"
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.632867+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.632864+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer risk-assessment preparation"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.632866+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.632865+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Give risk assessors timely, traceable information before they make the assessment decision"
+        }
+      },
+      "id": "usecase-risk-preparation",
+      "kind": "use_case"
+    },
+    {
+      "claims": {
+        "access_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Authorised Risk Operations users"
+        },
+        "consumer": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Risk assessors"
+        },
+        "consumption_capability": {
+          "asserted_at": "2026-11-04T11:55:00.632899+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Timely assessor-facing customer context with source references"
+        },
+        "data_capabilities": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Read-only, traceable information needed for customer risk assessment"
+        },
+        "data_quality": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Completeness measured for the quarterly pilot"
+        },
+        "domain_scope": {
+          "asserted_at": "2026-11-04T11:55:00.632896+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Candidate Customer Identity and Profile domain product; domain accountability and authoritative sources are to be confirmed"
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.632895+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.632892+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer identity and profile context"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.632894+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "product_boundary": {
+          "asserted_at": "2026-11-04T11:55:00.632898+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer identity and profile attributes and references needed for risk assessment; excludes due-diligence evidence management, risk scoring, policy interpretation, case decisions, approvals, and customer-record changes"
+        },
+        "product_kpi": {
+          "baseline": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 10
+          },
+          "measurement_period": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "quarterly"
+          },
+          "name": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "Information completeness"
+          },
+          "target": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 95
+          },
+          "unit": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "percent"
+          }
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.632894+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Provide assessors with the customer attributes and identity references needed to begin an assessment"
+        },
+        "reuse_hypothesis": {
+          "asserted_at": "2026-11-04T11:55:00.632899+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "May support other authorised customer-service and risk processes; consumers and product owner are unknown"
+        },
+        "service_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Available during the risk-assessment working day"
+        }
+      },
+      "id": "data-customer-profile-context",
+      "kind": "data_product"
+    },
+    {
+      "claims": {
+        "access_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Authorised Risk Operations users"
+        },
+        "consumer": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Risk assessors"
+        },
+        "consumption_capability": {
+          "asserted_at": "2026-11-04T11:55:00.632937+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Assessor-facing availability status and traceable evidence references"
+        },
+        "data_capabilities": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Read-only, traceable information needed for customer risk assessment"
+        },
+        "data_quality": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Completeness measured for the quarterly pilot"
+        },
+        "domain_scope": {
+          "asserted_at": "2026-11-04T11:55:00.632935+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Candidate Customer Due-Diligence Evidence domain product; evidence authority and domain accountability are to be confirmed"
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.632934+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.632931+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer due-diligence evidence context"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.632933+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "product_boundary": {
+          "asserted_at": "2026-11-04T11:55:00.632936+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer due-diligence evidence availability, evidence references, and data-quality flags; excludes identity-profile stewardship, customer-record changes, and assessment decisions"
+        },
+        "product_kpi": {
+          "baseline": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 10
+          },
+          "measurement_period": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "quarterly"
+          },
+          "name": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "Information completeness"
+          },
+          "target": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 95
+          },
+          "unit": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "percent"
+          }
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.632932+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Show assessors which required customer due-diligence evidence is available, missing, or flagged for quality"
+        },
+        "reuse_hypothesis": {
+          "asserted_at": "2026-11-04T11:55:00.632938+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "May support other authorised due-diligence and customer-review processes; consumers and product owner are unknown"
+        },
+        "service_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Available during the risk-assessment working day"
+        }
+      },
+      "id": "data-assessment-evidence",
+      "kind": "data_product"
+    },
+    {
+      "claims": {
+        "access_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Authorised Risk Operations users"
+        },
+        "consumer": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Risk assessors"
+        },
+        "consumption_capability": {
+          "asserted_at": "2026-11-04T11:55:00.632985+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Read-only case context for authorised risk operations users; a worklist is one possible consumption view, not the product boundary"
+        },
+        "data_capabilities": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Read-only, traceable information needed for customer risk assessment"
+        },
+        "data_quality": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Completeness measured for the quarterly pilot"
+        },
+        "domain_scope": {
+          "asserted_at": "2026-11-04T11:55:00.632982+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Candidate Customer Risk-Assessment Case domain product; case authority and domain accountability are to be confirmed"
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.632981+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.632978+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Customer risk-assessment case context"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.632981+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "product_boundary": {
+          "asserted_at": "2026-11-04T11:55:00.632984+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Risk-assessment case identity, accountable team, lifecycle context, due date, and outstanding information needs; excludes risk scoring, policy interpretation, case decisions, approvals, and customer-record changes"
+        },
+        "product_kpi": {
+          "baseline": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 10
+          },
+          "measurement_period": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "quarterly"
+          },
+          "name": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "Information completeness"
+          },
+          "target": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": 95
+          },
+          "unit": {
+            "asserted_at": "2026-11-04T10:00:00+00:00",
+            "derivation_input_hash": "customer-risk-e2e-v1",
+            "source_id": "business-owner:customer-risk-case",
+            "source_revision": "v1",
+            "status": "user_confirmed",
+            "value": "percent"
+          }
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.632980+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Provide the accountable risk-assessment case, its lifecycle context, and outstanding information needs to authorised risk operations users"
+        },
+        "reuse_hypothesis": {
+          "asserted_at": "2026-11-04T11:55:00.632985+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "May support authorised risk-management reporting and service oversight; consumers and product owner are unknown"
+        },
+        "service_expectations": {
+          "asserted_at": "2026-11-04T10:00:00+00:00",
+          "derivation_input_hash": "customer-risk-e2e-v1",
+          "source_id": "business-owner:customer-risk-case",
+          "source_revision": "v1",
+          "status": "user_confirmed",
+          "value": "Available during the risk-assessment working day"
+        }
+      },
+      "id": "data-risk-assessment-case-context",
+      "kind": "data_product"
+    },
+    {
+      "claims": {
+        "capability": {
+          "asserted_at": "2026-11-04T11:55:00.633038+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Retrieve, organise, and summarise assessor-approved information with source references"
+        },
+        "evaluation_criteria": {
+          "asserted_at": "2026-11-04T11:55:00.633040+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Assessor usefulness, source-reference accuracy, missing-information recall, and inappropriate-suggestion rate"
+        },
+        "human_oversight": {
+          "asserted_at": "2026-11-04T11:55:00.633039+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Required; a human assessor reviews all material and retains every assessment and approval decision"
+        },
+        "lifecycle_status": {
+          "asserted_at": "2026-11-04T11:55:00.633037+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "discovery"
+        },
+        "name": {
+          "asserted_at": "2026-11-04T11:55:00.633035+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Risk-assessment preparation assistant"
+        },
+        "owner": {
+          "asserted_at": "2026-11-04T11:55:00.633037+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "unknown",
+          "value": "Unknown"
+        },
+        "prohibited_actions": {
+          "asserted_at": "2026-11-04T11:55:00.633041+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "No risk scoring, policy interpretation, case decision, approval, or customer-record change"
+        },
+        "purpose": {
+          "asserted_at": "2026-11-04T11:55:00.633036+00:00",
+          "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+          "source_id": "business-input:613dbae81d5390ae",
+          "source_revision": "minimal-input-v1",
+          "status": "proposed",
+          "value": "Prepare a traceable summary of available evidence and missing-information prompts for a human assessor; it does not decide the case"
+        }
+      },
+      "id": "ai-risk-preparation-assistant",
+      "kind": "ai_product"
+    }
+  ],
+  "portfolio_id": "customer-risk-assessment-proposal",
+  "relationships": [
+    {
+      "from_id": "usecase-risk-preparation",
+      "id": "risk-preparation-objective",
+      "kind": "use-case-supports-objective",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633095+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "objective-customer-risk"
+    },
+    {
+      "from_id": "usecase-risk-preparation",
+      "id": "risk-preparation-profile",
+      "kind": "use-case-requires-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633151+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-customer-profile-context"
+    },
+    {
+      "from_id": "usecase-risk-preparation",
+      "id": "risk-preparation-evidence",
+      "kind": "use-case-requires-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633208+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-assessment-evidence"
+    },
+    {
+      "from_id": "usecase-risk-preparation",
+      "id": "risk-preparation-case-context",
+      "kind": "use-case-requires-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633265+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-risk-assessment-case-context"
+    },
+    {
+      "from_id": "usecase-risk-preparation",
+      "id": "risk-preparation-ai",
+      "kind": "use-case-delivered-by-ai-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633323+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "ai-risk-preparation-assistant"
+    },
+    {
+      "from_id": "ai-risk-preparation-assistant",
+      "id": "ai-profile-context",
+      "kind": "ai-product-consumes-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633383+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-customer-profile-context"
+    },
+    {
+      "from_id": "ai-risk-preparation-assistant",
+      "id": "ai-assessment-evidence",
+      "kind": "ai-product-consumes-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633443+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-assessment-evidence"
+    },
+    {
+      "from_id": "ai-risk-preparation-assistant",
+      "id": "ai-case-context",
+      "kind": "ai-product-consumes-data-product",
+      "provenance": {
+        "asserted_at": "2026-11-04T11:55:00.633506+00:00",
+        "derivation_input_hash": "613dbae81d5390ae8d91628a97c0b158e247dd123186ef323f8ab159cda2dc2e",
+        "source_id": "business-input:613dbae81d5390ae",
+        "source_revision": "minimal-input-v1",
+        "status": "proposed",
+        "value": "deterministic initial proposal"
+      },
+      "to_id": "data-risk-assessment-case-context"
+    }
+  ],
+  "revision": "draft-v1",
+  "schema_version": 3,
+  "title": "Customer risk-assessment improvement \u2014 provisional design"
+}

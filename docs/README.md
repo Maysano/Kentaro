@@ -34,3 +34,6 @@ Product home: [maysano.com/kentaro](https://maysano.com/kentaro).
   credentials, retrieved context, and evidence exports.
 - [Implementation status](roadmap.md): verified current implementation status and
   explicitly deferred work.
+- [Changelog](changelog.md): concise record of delivered lifecycle changes.
+- [End-to-end business-design validation](end-to-end-business-design-validation.md): the reusable
+  synthetic Business Owner prompt-and-graph contract.
