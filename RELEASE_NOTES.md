@@ -1,5 +1,18 @@
 # Kentaro release notes
 
+## 0.2.11 — ODPC v1.1 AI-product delivery (6 November 2026)
+
+Kentaro 0.2.11 pins `open-data-products==0.5.0` and replaces its private AI-product
+handover definition with the ODPC v1.1 `AIProduct` profile. A complete confirmed AI
+product now produces its profile, an inline ODPC catalog node, an ODPC product reference,
+and an ODPG `AIProduct` node. The prior private JSON artifact and `Agent` graph mapping are
+not emitted.
+
+Missing ODPC identity, owner, governance, or evaluation inputs do not block business design.
+Kentaro stores those gaps as sourced, targeted questions and writes an
+`awaiting_odpc_input` status in the engagement state and delivery package. Validation remains
+structural only; it does not establish approval, implementation readiness, or production readiness.
+
 ## 0.2.10 — Stateful business-design lifecycle (4 November 2026)
 
 Kentaro 0.2.10 strengthens local, graph-connected business design without changing

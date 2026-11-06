@@ -9,6 +9,8 @@ Capture an AI product as kind `ai_product`, never as an ODPS data product. Ask f
 users, intelligent capability, interfaces, possible agent actions, human oversight, evaluation
 criteria, ownership, lifecycle, and dependencies. Store each response or gap as a canonical Claim.
 
+For delivery, use ODPC v1.1 `AIProduct`, not the retired private Kentaro definition and not an `Agent` graph node. Ask the business user only for missing information: stable product ID, version, product type, structured owner, autonomy and human-oversight boundary, consequential-action approval boundary, risk classification, known limitations, and at least one evaluation metric with method, target, unit, and status. Record supplied answers as sourced claims. Until every required ODPC field is `case_fact` or `user_confirmed`, mark the product `awaiting_odpc_input`; do not block the surrounding business design, and do not emit a normative AI-product profile.
+
 Assess AI suitability against conventional workflow automation and human judgment before proposing
 an AI product. If the available statement does not justify AI, record why AI is deferred and keep
 the non-AI design path; do not force an `ai_product` into an initial portfolio. If AI assistance is
@@ -16,7 +18,7 @@ plausible, make its capability and required human oversight `proposed` or `unkno
 confirmed operating fact.
 
 Use semantic relationships to link the product to use cases and data products. Validate before
-rendering or reporting. A complete local definition is not permission for deployment, autonomous
+rendering or reporting. A structurally valid ODPC profile is not permission for deployment, autonomous
 action, approval, or Maysano mutation.
 
 When this changes an existing design, regenerate its adjacent visual canvas and refresh or reopen

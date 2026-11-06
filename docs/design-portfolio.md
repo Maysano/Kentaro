@@ -171,7 +171,7 @@ the alternatives without implying that an AI product belongs to a conventional p
 both paths use the same data product.
 
 The standard `kentaro` package includes the pinned
-`open-data-products==0.4.0` adapter to validate local ODPS artifacts. Structural validation is not business evidence, data access,
+`open-data-products==0.5.0` adapter to validate local ODPS artifacts and ODPC v1.1 AI-product profiles. An AI product remains a business product, not an implementation agent. Kentaro asks for the human-supplied ODPC product identity, structured owner, governance boundary, and evaluation metric when they are missing; it records `awaiting_odpc_input` without blocking local business design. A reviewed delivery package writes `governance/ai-product-specification-status.json`; only confirmed inputs produce `specifications/ai-products/<id>.odpc.yaml`, an ODPC v1.1 catalog inline node and product reference, and an ODPG `AIProduct` node. Structural validation is not business evidence, data access,
 compliance, approval, safety, or production readiness.
 
 The wheel also carries the Kentaro documentation and agent skill instructions under its

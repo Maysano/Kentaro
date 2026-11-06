@@ -118,7 +118,7 @@ class EndToEndBusinessDesignTests(unittest.TestCase):
             exported = export_handover(portfolio, destination, reviewer="Business Owner", confirmation="I have reviewed this completed design and its unresolved issues.", acknowledge_all_open_decisions=True)
             self.assertEqual(exported["manifest"]["status"], "reviewed")
             self.assertTrue(validate_handover(destination)["valid"])
-            self.assertEqual({item["kind"] for item in exported["manifest"]["specification_status"]}, {"ODPS", "ODPC", "ODPG"})
+            self.assertEqual({item["kind"] for item in exported["manifest"]["specification_status"]}, {"ODPS", "ODPC", "ODPG", "ODPC AIProduct"})
 
     def test_packaged_reference_result_is_inspectable_and_current(self):
         case = load_case()

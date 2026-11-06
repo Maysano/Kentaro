@@ -6,11 +6,35 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
-from kentaro.design.engagement import load_engagement_state, update_engagement_state
+from kentaro.design.engagement import build_engagement_state, load_engagement_state, update_engagement_state
 from kentaro.design.portfolio import add_object, add_relationship, create_design_portfolio, make_claim
+from kentaro.design.specifications import structural_completion
 
 
 class DesignEngagementTests(unittest.TestCase):
+    def _complete_portfolio_with_proposed_ai_product(self):
+        source = ("workshop", "v1", "input")
+        claim = lambda value: make_claim(value, "proposed", *source, asserted_at="2026-10-28T00:00:00+00:00")
+        metric = lambda name, target, unit, period: {"name": claim(name), "target": claim(target), "unit": claim(unit), "measurement_period": claim(period)}
+        portfolio = create_design_portfolio("Service design", "service-design")
+        portfolio = add_object(portfolio, "objective", "objective", {"name": claim("Improve service"), "purpose": claim("Reduce delay"), "owner": claim("Service team"), "lifecycle_status": claim("discovery"), "outcome": claim("Faster service"), "business_kpi": metric("Cycle time", 2, "days", "monthly")})
+        portfolio = add_object(portfolio, "use-case", "use_case", {"name": claim("Case review"), "purpose": claim("Review cases"), "owner": claim("Service team"), "lifecycle_status": claim("discovery"), "consumer": claim("Case worker"), "expected_business_contribution": claim("Reduce review delay"), "data_capabilities": claim("Case context")})
+        portfolio = add_object(portfolio, "data-product", "data_product", {"name": claim("Case context"), "purpose": claim("Reusable case information"), "owner": claim("Data team"), "lifecycle_status": claim("discovery"), "consumer": claim("Case worker"), "product_boundary": claim("Case status"), "data_capabilities": claim("Case context"), "data_quality": claim("Completeness"), "access_expectations": claim("Case workers"), "service_expectations": claim("Business day"), "product_kpi": metric("Completeness", 95, "percent", "monthly")})
+        portfolio = add_object(portfolio, "ai-review", "ai_product", {"name": claim("Review assistant"), "purpose": claim("Prepares evidence for a human reviewer"), "owner": claim("Service team"), "lifecycle_status": claim("discovery")})
+        portfolio = add_relationship(portfolio, "supports", "use-case", "objective", "use-case-supports-objective")
+        portfolio = add_relationship(portfolio, "uses", "use-case", "data-product", "use-case-requires-data-product")
+        return add_relationship(portfolio, "delivered-by", "use-case", "ai-review", "use-case-delivered-by-ai-product")
+
+    def test_engagement_requests_missing_odpc_ai_product_details_without_blocking_structure(self):
+        portfolio = self._complete_portfolio_with_proposed_ai_product()
+
+        state = build_engagement_state(portfolio, portfolio_path=Path("/tmp/portfolio.json"))
+
+        topic = next(item for item in state["topics_to_resolve"] if item["topic"] == "ODPC AI-product definition")
+        self.assertEqual(topic["items"][0]["code"], "missing_ai_product_odpc_identity")
+        self.assertIn("product ID", state["next_unresolved_requirement"])
+        self.assertTrue(structural_completion(portfolio)["structurally_complete"])
+
     def test_state_is_derived_from_portfolio_and_exposes_next_requirement(self):
         source = ("workshop", "v1", "input")
         claim = lambda value: make_claim(value, "proposed", *source, asserted_at="2026-10-28T00:00:00+00:00")

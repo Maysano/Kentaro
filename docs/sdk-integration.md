@@ -45,7 +45,7 @@ do not create or update a Maysano record, request approval, or imply production 
 ## v0.2 Masterclass fixture
 
 The v0.2 local design capability uses one deliberately narrow, deterministic SDK integration:
-`open-data-products==0.4.0`. Its packaged Customer Profile scenario fixture is validated with
+`open-data-products==0.5.0`. Its packaged Customer Profile scenario fixture is validated with
 the SDK's documented `python -m open_data_products.cli validate <artifact> --json`
 contract and is covered by an integration test. The normal course path does not run
 generation, does not require Ollama or a hosted provider, and does not contact Maysano.
@@ -53,6 +53,8 @@ generation, does not require Ollama or a hosted provider, and does not contact M
 The pin is a standard Kentaro runtime dependency. A valid
 fixture proves only that the artifact conforms to the SDK's structural validation; it is
 not evidence that data exists, can be accessed, is safe to use, or is ready for production.
+
+Kentaro also uses the same pinned release to validate ODPC v1.1 `AIProduct` profiles and catalogs. Missing AI-product identity, owner, governance, or evaluation details remain an explicit local design question; they do not block business design or create an approval.
 
 ## Remaining integration work
 

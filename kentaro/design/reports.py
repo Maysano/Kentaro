@@ -320,12 +320,12 @@ def validate_odps(path: str | Path) -> dict:
         import open_data_products
     except ImportError as error:
         raise ValueError('ODPS validation requires `python -m pip install --upgrade kentaro`.') from error
-    if getattr(open_data_products, "__version__", None) != "0.4.0":
-        raise ValueError("Design validation requires open-data-products 0.4.0")
+    if getattr(open_data_products, "__version__", None) != "0.5.0":
+        raise ValueError("Design validation requires open-data-products 0.5.0")
     completed = subprocess.run([sys.executable, "-m", "open_data_products.cli", "validate", str(Path(path).resolve()), "--json"], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
     try:
         result = json.loads(completed.stdout)
     except json.JSONDecodeError:
         result = {"valid": False, "errors": [completed.stderr or "SDK did not return JSON"]}
-    result["sdk_version"] = "0.4.0"
+    result["sdk_version"] = "0.5.0"
     return result

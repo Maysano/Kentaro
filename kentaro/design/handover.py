@@ -21,7 +21,7 @@ from .reports import executive_summary, readiness
 from .specifications import build_specifications, structural_completion
 
 
-HANDOVER_SCHEMA_VERSION = 1
+HANDOVER_SCHEMA_VERSION = 2
 PACKAGE_MODEL = "KentaroDeliveryHandover"
 
 
@@ -185,16 +185,16 @@ def _readme(design: dict, *, package_status: str) -> str:
         "- `decision-context.yaml` is JSON-compatible YAML and preserves the business, product, and decision context.",
         "- `portfolio/` contains the frozen source design and its rendered canvas.",
         "- `governance/` contains provenance and deterministic readiness findings; it does not contain approvals or platform records.",
-        "- `specifications/ai-products/` holds draft AI-product definitions. A review package does not include final ODPS, ODPC, or ODPG files; a structurally complete, human-confirmed final ZIP includes their deterministic, SDK-validated exports.",
+        "- `governance/ai-product-specification-status.json` records which confirmed ODPC v1.1 AI-product inputs are still needed. A review package does not include normative ODPS, ODPC, or ODPG files; a structurally complete, human-confirmed final ZIP includes deterministic, SDK-validated exports for eligible products.",
         "",
         "Regenerate a new package after the source revision or content changes. Validate the package and use package status to detect staleness before consuming it.", "",
     ))
 
 
-def _specification_status() -> list[dict]:
+def _specification_status(completion: dict) -> list[dict]:
     return [
-        {"kind": kind, "status": "unsupported", "reason": "No deterministic DesignPortfolio mapping contract has been implemented."}
-        for kind in ("ODPC", "ODPG", "ODPS")
+        {"kind": "ODPC AIProduct", "object_id": item["object_id"], "status": item["coverage"], "missing": item["missing"], "next_question": item["question"]}
+        for item in completion.get("odpc_ai_product_coverage", [])
     ]
 
 
@@ -241,22 +241,15 @@ def generate_handover(
         _write(temporary / "governance" / "unresolved-decisions.json", {"status": "draft", "decision_records": context["decision_records"], "outstanding_decisions": context["outstanding_decisions"]})
         _write(temporary / "governance" / "readiness-report.json", assessment)
         _write(temporary / "governance" / "structural-completion.json", completion)
+        ai_product_status = _specification_status(completion)
+        _write(temporary / "governance" / "ai-product-specification-status.json", {"schema_version": 1, "model": "KentaroAIProductSpecificationStatus", "products": ai_product_status, "limitations": ["Missing ODPC inputs do not block business design. They prevent only normative ODPC AI-product export."]})
         if review_confirmation is not None:
             _write(temporary / "governance" / "user-confirmation.json", review_confirmation)
-        for item in (entry for entry in design["objects"] if entry["kind"] == "ai_product"):
-            _write(temporary / "specifications" / "ai-products" / f"{item['id']}.json", {
-                "schema_version": 1,
-                "model": "KentaroAIProductDefinition",
-                "status": "draft",
-                "source": {"portfolio_id": design["portfolio_id"], "source_revision": design["revision"], "portfolio_hash": check["content_hash"]},
-                "definition": item,
-                "limitations": ["This draft definition is not an operational AI-product specification or delivery authorization."],
-            })
         specifications = None
-        specification_status = _specification_status()
+        specification_status = ai_product_status
         if package_status == "reviewed":
             specifications = build_specifications(design, temporary / "specifications")
-            specification_status = _validated_specification_status(specifications["validations"])
+            specification_status = [*_validated_specification_status(specifications["validations"]), *ai_product_status]
         validation = {
             "schema_version": 1,
             "valid": True,

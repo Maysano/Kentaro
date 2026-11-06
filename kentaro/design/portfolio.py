@@ -315,3 +315,15 @@ def set_claim(portfolio: dict, field: str, claim: dict, *, object_id: str | None
             item["claims"][field] = deepcopy(claim)
             return updated
     raise ValueError(f"Unknown design object: {object_id}")
+
+
+def set_ai_product_odpc(portfolio: dict, object_id: str, claims: dict) -> dict:
+    """Replace the sourced ODPC v1.1 input group on one local AI product."""
+    updated = migrate_portfolio(portfolio)
+    for item in updated["objects"]:
+        if item["id"] == object_id:
+            if item["kind"] != "ai_product":
+                raise ValueError(f"Design object is not an AI product: {object_id}")
+            item["claims"]["odpc"] = deepcopy(claims)
+            return updated
+    raise ValueError(f"Unknown design object: {object_id}")

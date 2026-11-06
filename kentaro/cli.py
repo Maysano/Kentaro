@@ -32,6 +32,7 @@ from kentaro.design.portfolio import (
     migrate_portfolio,
     record_decision,
     save_portfolio,
+    set_ai_product_odpc,
     set_claim,
     validate_portfolio,
 )
@@ -194,6 +195,14 @@ def _parser() -> argparse.ArgumentParser:
     design_set_claim.add_argument("--source-id", required=True)
     design_set_claim.add_argument("--source-revision", required=True)
     design_set_claim.add_argument("--derivation-input-hash", required=True)
+    design_set_ai_product_odpc = design_commands.add_parser("set-ai-product-odpc", help="Set human-supplied ODPC v1.1 AI-product inputs without treating them as approval")
+    design_set_ai_product_odpc.add_argument("--input", required=True)
+    design_set_ai_product_odpc.add_argument("--object-id", required=True)
+    design_set_ai_product_odpc.add_argument("--input-json", required=True, help="ODPC input object; every supplied leaf is recorded as a sourced Claim")
+    design_set_ai_product_odpc.add_argument("--status", required=True, choices=("case_fact", "user_confirmed", "proposed", "assumed", "unknown"))
+    design_set_ai_product_odpc.add_argument("--source-id", required=True)
+    design_set_ai_product_odpc.add_argument("--source-revision", required=True)
+    design_set_ai_product_odpc.add_argument("--derivation-input-hash", required=True)
     design_set_stage = design_commands.add_parser("set-assessment-stage", help="Record the lifecycle stage for subsequent local assessment")
     design_set_stage.add_argument("--input", required=True)
     design_set_stage.add_argument("--assessment-stage", required=True, choices=("discovery", "design", "implementation", "operation"))
@@ -412,6 +421,15 @@ def _configure_maysano(args: argparse.Namespace, workspace: Path) -> None:
     print("Read-only Maysano source configured locally. Use `kentaro portfolio brief --source maysano`.")
 
 
+def _sourced_odpc_claims(value: object, *, status: str, source: tuple[str, str, str]) -> object:
+    """Convert a user-supplied ODPC input object to canonical portfolio claims."""
+    if isinstance(value, dict):
+        if not value:
+            raise ValueError("ODPC input objects cannot be empty")
+        return {key: _sourced_odpc_claims(child, status=status, source=source) for key, child in value.items()}
+    return make_claim(value, status, *source)
+
+
 def main(argv=None):
     parser = _parser()
     args = parser.parse_args(argv)
@@ -514,6 +532,18 @@ def main(argv=None):
                 portfolio = load_portfolio(_workspace_output(args.input, workspace))
                 claim = make_claim(args.value, args.status, args.source_id, args.source_revision, args.derivation_input_hash)
                 saved = save_portfolio(set_claim(portfolio, args.field, claim, object_id=args.object_id), _workspace_output(args.input, workspace))
+                state, _ = _refresh_engagement(saved); print(json.dumps({"portfolio": str(saved), "engagement_state": str(state)}, sort_keys=True))
+            elif args.design_command == "set-ai-product-odpc":
+                try:
+                    supplied = json.loads(args.input_json)
+                except json.JSONDecodeError as error:
+                    raise ValueError("ODPC input must be valid JSON") from error
+                if not isinstance(supplied, dict) or not supplied:
+                    raise ValueError("ODPC input must be a nonempty JSON object")
+                portfolio = load_portfolio(_workspace_output(args.input, workspace))
+                source = (args.source_id, args.source_revision, args.derivation_input_hash)
+                claims = _sourced_odpc_claims(supplied, status=args.status, source=source)
+                saved = save_portfolio(set_ai_product_odpc(portfolio, args.object_id, claims), _workspace_output(args.input, workspace))
                 state, _ = _refresh_engagement(saved); print(json.dumps({"portfolio": str(saved), "engagement_state": str(state)}, sort_keys=True))
             elif args.design_command == "set-assessment-stage":
                 portfolio = load_portfolio(_workspace_output(args.input, workspace))

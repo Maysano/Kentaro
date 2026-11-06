@@ -81,7 +81,7 @@ products, and non-AI use cases use an explicit `ai_involvement` Claim.
 
 Acceptance requires a generic non-banking scenario and the banking Masterclass scenario to use
 the same engine, canvas, reports, manifests, and stale checks; all material claims retain
-provenance and epistemic state; ODPS validates through `open-data-products==0.4.0`; and all paths
+provenance and epistemic state; ODPS and ODPC v1.1 AI-product profiles validate through `open-data-products==0.5.0`; and all paths
 run without a network, credentials, Ollama, hosted model, or paid API.
 
 ---

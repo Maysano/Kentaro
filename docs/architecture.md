@@ -69,4 +69,4 @@ record bound to the request version, payload/diff digest, authority chain, ratio
 evidence, scope, timestamp, expiry, and named authority. A suspended agent must not
 resume from cached authority.
 
-The selected SDK is [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk), distributed as `open-data-products` (Apache-2.0). v0.2 pins local ODPS structural validation to `open-data-products==0.4.0`; its optional local drafts align with the [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/). See [integration notes](sdk-integration.md). Model or tool execution remains outside the v0.1 and v0.2 boundaries.
+The selected SDK is [odp-agent-sdk](https://github.com/Open-Data-Product-Initiative/odp-agent-sdk), distributed as `open-data-products` (Apache-2.0). v0.2 pins local ODPS and ODPC v1.1 AI-product structural validation to `open-data-products==0.5.0`; its optional local drafts align with the [Open Data Products (ODPS) family of specifications](https://opendataproducts.org/). See [integration notes](sdk-integration.md). Model or tool execution remains outside the v0.1 and v0.2 boundaries.
