@@ -165,6 +165,11 @@ def _topics(missing: list[dict]) -> list[dict]:
         "missing_data_product": "Data-product definition and links",
         "unlinked_data_product": "Use-case to data-product links",
         "missing_data_product_kpi": "Product KPI targets",
+        "missing_ai_product_odpc_identity": "ODPC AI-product definition",
+        "missing_ai_product_odpc_owner": "ODPC AI-product definition",
+        "missing_ai_product_odpc_governance": "ODPC AI-product definition",
+        "missing_ai_product_odpc_evaluation": "ODPC AI-product definition",
+        "invalid_ai_product_odpc_profile": "ODPC AI-product definition",
     }
     for finding in missing:
         code = finding.get("code", "")
@@ -191,7 +196,7 @@ def _evaluation(design: dict, checked: dict, completion: dict, readiness_result:
         reconsideration.append({"kind": "derived_outputs", "reason": "The authoritative portfolio changed; regenerate or re-check rendered reports and handover material."})
     if delivery and delivery.get("source_hash") and delivery["source_hash"] != checked["content_hash"]:
         reconsideration.append({"kind": "handover", "reason": "The recorded handover was generated from an older portfolio hash and is stale."})
-    missing = completion.get("findings", [])
+    missing = [*completion.get("findings", []), *completion.get("odpc_findings", [])]
     decisions = [item for item in readiness_result["findings"] if item["category"] == "decision_dependency"]
     recorded_decisions = _decision_register(design)["unresolved"]
     question = completion.get("discovery_questions", [None])[0] if completion.get("discovery_questions") else None
@@ -227,7 +232,7 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
     readiness_result = readiness(design)
     decision_dependencies = [item for item in readiness_result["findings"] if item["category"] == "decision_dependency"]
     decision_register = _decision_register(design)
-    missing = completion.get("findings", [])
+    missing = [*completion.get("findings", []), *completion.get("odpc_findings", [])]
     questions = completion.get("discovery_questions", [])
     next_requirement = questions[0] if questions else (
         "Ask the human reviewer to confirm the provisional design and acknowledge unresolved decisions before generating the final handover package."
@@ -254,6 +259,7 @@ def build_engagement_state(portfolio: dict, *, portfolio_path: str | Path, deliv
         "structural_completion": {
             "complete": completion.get("structurally_complete", False),
             "limitations": completion.get("limitations", []),
+            "odpc_ai_product_coverage": completion.get("odpc_ai_product_coverage", []),
         },
         "handover": delivery or {"status": "not_generated", "source_hash": checked["content_hash"]},
         "company_graph_context": _company_graph_status(design, delivery),

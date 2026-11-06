@@ -8,6 +8,60 @@ from .portfolio import is_claim, validate_portfolio
 from .reports import validate_odps
 
 
+ODPC_CONFIRMED_STATUSES = {"case_fact", "user_confirmed"}
+
+
+def _confirmed_claim(value: object) -> bool:
+    return is_claim(value) and value["status"] in ODPC_CONFIRMED_STATUSES
+
+
+def ai_product_odpc_coverage(item: dict) -> dict:
+    """Report whether an AI product has confirmed ODPC v1.1 export inputs."""
+    claims = item.get("claims", {})
+    odpc = claims.get("odpc") if isinstance(claims, dict) else None
+    odpc = odpc if isinstance(odpc, dict) and not is_claim(odpc) else {}
+    missing = []
+    identity = ("product_id", "product_version", "product_type")
+    if not all(_confirmed_claim(odpc.get(field)) for field in identity):
+        missing.append({"code": "missing_ai_product_odpc_identity", "paths": [f"odpc.{field}" for field in identity], "message": "AI product needs a confirmed ODPC product ID, product version, and product type."})
+    owner = odpc.get("owner")
+    if not isinstance(owner, dict) or not any(_confirmed_claim(owner.get(field)) for field in ("organization", "team", "role")):
+        missing.append({"code": "missing_ai_product_odpc_owner", "paths": ["odpc.owner.organization", "odpc.owner.team", "odpc.owner.role"], "message": "AI product needs a confirmed structured ODPC owner (organization, team, or role)."})
+    governance_fields = ("autonomy_level", "human_oversight_required", "human_oversight_requirements", "consequential_action_approval_required", "consequential_action_approval_requirements", "risk_classification", "known_limitations")
+    if not all(_confirmed_claim(odpc.get(field)) for field in governance_fields):
+        missing.append({"code": "missing_ai_product_odpc_governance", "paths": [f"odpc.{field}" for field in governance_fields], "message": "AI product needs confirmed autonomy, human oversight, consequential-action approval, risk classification, and known limitations."})
+    evaluations = odpc.get("evaluation")
+    valid_evaluation = False
+    if isinstance(evaluations, dict):
+        required = ("id", "name", "measurement_method", "target_value", "unit", "status")
+        valid_evaluation = any(isinstance(metric, dict) and all(_confirmed_claim(metric.get(field)) for field in required) for metric in evaluations.values())
+    if not valid_evaluation:
+        missing.append({"code": "missing_ai_product_odpc_evaluation", "paths": ["odpc.evaluation.<metric>.id", "odpc.evaluation.<metric>.name", "odpc.evaluation.<metric>.measurement_method", "odpc.evaluation.<metric>.target_value", "odpc.evaluation.<metric>.unit", "odpc.evaluation.<metric>.status"], "message": "AI product needs one confirmed ODPC evaluation metric with its method, target, unit, and status."})
+    invalid = []
+    if not missing:
+        try:
+            from open_data_products import validate_ai_product
+            invalid = list(validate_ai_product(_ai_product_profile(item)).errors)
+        except ImportError:
+            invalid = ["The pinned open-data-products validator is unavailable."]
+    question = None
+    if missing:
+        first = missing[0]
+        if first["code"] == "missing_ai_product_odpc_identity":
+            question = f"For {item['claims']['name']['value']}, what stable product ID, product version, and product type should the ODPC AI Product use?"
+        else:
+            question = f"For {item['claims']['name']['value']}, what confirmed ODPC AI-product information is needed next: {first['message']}"
+    if invalid:
+        missing = [{"code": "invalid_ai_product_odpc_profile", "paths": ["odpc"], "message": "AI product ODPC input is present but does not satisfy the ODPC v1.1 profile: " + "; ".join(invalid)}]
+        question = f"For {item['claims']['name']['value']}, please correct the ODPC AI-product values reported in the validation detail."
+    return {"object_id": item["id"], "coverage": "invalid" if invalid else "validated" if not missing else "awaiting_odpc_input", "missing": missing, "question": question}
+
+
+def ai_product_odpc_coverages(portfolio: dict) -> list[dict]:
+    """Return ODPC v1.1 coverage for each local AI-product object."""
+    return [ai_product_odpc_coverage(item) for item in portfolio["objects"] if item["kind"] == "ai_product"]
+
+
 def _value(claims: dict, field: str):
     claim = claims.get(field)
     return claim["value"] if is_claim(claim) else None
@@ -76,7 +130,11 @@ def structural_completion(portfolio: dict) -> dict:
         "missing_data_product_access_expectations": "Who needs access and under what access expectation?",
         "missing_data_product_service_expectations": "What availability, timeliness, or service expectation is needed?",
     }
-    return {"valid": True, "structurally_complete": not findings, "portfolio_hash": checked["content_hash"], "findings": findings, "discovery_questions": sorted({question_for[item["code"]] for item in findings if item["code"] in question_for}), "limitations": ["Structural completion permits proposed values. It is not business approval, access confirmation, or production readiness."]}
+    odpc_coverages = ai_product_odpc_coverages(design)
+    odpc_findings = [finding for coverage in odpc_coverages for finding in coverage["missing"]]
+    questions = sorted({question_for[item["code"]] for item in findings if item["code"] in question_for})
+    questions.extend(coverage["question"] for coverage in odpc_coverages if coverage["question"])
+    return {"valid": True, "structurally_complete": not findings, "portfolio_hash": checked["content_hash"], "findings": findings, "odpc_ai_product_coverage": odpc_coverages, "odpc_findings": odpc_findings, "discovery_questions": questions, "limitations": ["Structural completion permits proposed values. It is not business approval, access confirmation, or production readiness.", "Missing ODPC AI-product inputs are non-blocking business-design gaps; they prevent only normative ODPC export."]}
 
 
 def _language(value: object) -> dict:
@@ -103,6 +161,53 @@ def _odps_product(item: dict) -> dict:
     }}
 
 
+def _odpc_value(claims: dict, field: str):
+    return _value(claims, field)
+
+
+def _language_list(value: object) -> list[dict]:
+    values = value if isinstance(value, list) else [value]
+    return [_language(item) for item in values if str(item).strip()]
+
+
+def _ai_product_profile(item: dict) -> dict:
+    """Map confirmed, sourced local claims to the ODPC v1.1 AIProduct profile."""
+    claims = item["claims"]
+    odpc = claims["odpc"]
+    owner = {field: _odpc_value(odpc["owner"], field) for field in ("organization", "team", "role") if is_claim(odpc["owner"].get(field))}
+    metrics = []
+    for metric in odpc["evaluation"].values():
+        metrics.append({
+            "id": _odpc_value(metric, "id"), "name": _language(_odpc_value(metric, "name")),
+            "measurementMethod": _language(_odpc_value(metric, "measurement_method")),
+            "targetValue": _odpc_value(metric, "target_value"), "unit": _odpc_value(metric, "unit"), "status": _odpc_value(metric, "status"),
+        })
+    product = {
+        "productID": _odpc_value(odpc, "product_id"), "productVersion": _odpc_value(odpc, "product_version"),
+        "name": _language(_value(claims, "name")), "description": _language(_value(claims, "purpose")), "purpose": _language(_value(claims, "purpose")),
+        "owner": owner, "productType": _odpc_value(odpc, "product_type"),
+        "governance": {
+            "autonomyLevel": _odpc_value(odpc, "autonomy_level"),
+            "humanOversight": {"required": _odpc_value(odpc, "human_oversight_required"), "requirements": _language_list(_odpc_value(odpc, "human_oversight_requirements"))},
+            "consequentialActionApproval": {"required": _odpc_value(odpc, "consequential_action_approval_required"), "requirements": _language_list(_odpc_value(odpc, "consequential_action_approval_requirements"))},
+            "riskClassification": _odpc_value(odpc, "risk_classification"), "knownLimitations": _language_list(_odpc_value(odpc, "known_limitations")),
+        },
+        "evaluation": metrics,
+    }
+    return {"schema": "https://opendataproducts.org/odpc-v1.1/schema/ai-product.yaml", "version": "1.1", "kind": "AIProduct", "aiProduct": product}
+
+
+def _ai_product_catalog_nodes(item: dict, profile: dict) -> list[dict]:
+    product = profile["aiProduct"]
+    reference = {
+        "kind": "productReference", "id": item["id"], "productID": product["productID"], "productVersion": product["productVersion"],
+        "name": product["name"], "description": product["description"], "productCategory": "ai_product", "owner": product["owner"],
+        "productModel": {"standard": "ODPC", "version": "1.1", "profile": "AIProduct", "format": "yaml", "schema": "https://opendataproducts.org/odpc-v1.1/schema/ai-product.yaml", "$ref": f"ai-products/{item['id']}.odpc.yaml"},
+    }
+    inline = {"kind": "aiProduct", "id": item["id"], **product}
+    return [{"node": inline}, {"node": reference}]
+
+
 def build_specifications(portfolio: dict, destination: str | Path) -> dict:
     """Write and validate only supported, deterministic ODPS/ODPC/ODPG artifacts."""
     completion = structural_completion(portfolio)
@@ -114,36 +219,45 @@ def build_specifications(portfolio: dict, destination: str | Path) -> dict:
     ai_products = [item for item in design["objects"] if item["kind"] == "ai_product"]
     objectives = [item for item in design["objects"] if item["kind"] == "objective"]
     use_cases = [item for item in design["objects"] if item["kind"] == "use_case"]
-    product_refs = []
+    catalog_nodes = []
     artifacts = []
     for item in products:
         path = root / "data-products" / f"{item['id']}.odps.yaml"
         _write(path, _odps_product(item)); artifacts.append(path)
-        product_refs.append({"id": item["id"], "productID": item["id"], "productVersion": design["revision"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose")), "valueProposition": _language(_value(item["claims"], "purpose")), "status": "draft", "productModel": {"standard": "ODPS", "version": "4.0", "format": "yaml", "$ref": f"data-products/{item['id']}.odps.yaml"}})
-    objective_defs = []
+        catalog_nodes.append({"node": {"kind": "productReference", "id": item["id"], "productID": item["id"], "productVersion": design["revision"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose")), "productCategory": "data_product", "productModel": {"standard": "ODPS", "version": "4.0", "format": "yaml", "$ref": f"data-products/{item['id']}.odps.yaml"}}})
     for item in objectives:
-        metric = _metric(item["claims"], "business_kpi")
-        kpi = {"id": f"kpi-{item['id']}", "name": _language(_value(metric, "name")), "description": _language(f"Business KPI for {_value(item['claims'], 'name')}"), "unit": _value(metric, "unit"), "target": {"value": _value(metric, "target")}, "x-kentaro-measurement-period": _value(metric, "measurement_period")}
-        baseline = _value(metric, "baseline") if is_claim(metric.get("baseline")) else None
-        if isinstance(baseline, (int, float)): kpi["baseline"] = {"value": baseline}
-        objective_defs.append({"id": item["id"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose")), "expectedOutcomes": [_language(_value(item["claims"], "outcome"))], "kpis": [kpi], "status": "draft"})
-    use_case_defs = [{"id": item["id"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose")), "stakeholders": [str(_value(item["claims"], "consumer"))], "expectedOutcome": _language(_value(item["claims"], "expected_business_contribution")), "dataNeeds": {"summary": _language(_value(item["claims"], "data_capabilities"))}, "status": "draft"} for item in use_cases]
-    catalog = {"schema": "https://opendataproducts.org/odpc-v1.0/schema/odpc.yaml", "version": "1.0", "kind": "Catalog", "catalog": {"metadata": {"id": design["portfolio_id"], "name": _language(design["title"]), "description": _language("Draft catalog derived from a Kentaro DesignPortfolio"), "status": "draft"}, "productReferences": product_refs, "useCases": use_case_defs, "businessObjectives": objective_defs}}
+        catalog_nodes.append({"node": {"kind": "businessObjective", "id": item["id"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose"))}})
+    for item in use_cases:
+        catalog_nodes.append({"node": {"kind": "useCase", "id": item["id"], "name": _language(_value(item["claims"], "name")), "description": _language(_value(item["claims"], "purpose"))}})
+    ai_profiles = {}
+    for item, coverage in zip(ai_products, completion["odpc_ai_product_coverage"]):
+        if coverage["coverage"] != "validated":
+            continue
+        profile = _ai_product_profile(item)
+        path = root / "ai-products" / f"{item['id']}.odpc.yaml"
+        _write(path, profile); artifacts.append(path); ai_profiles[item["id"]] = profile
+        catalog_nodes.extend(_ai_product_catalog_nodes(item, profile))
+    catalog_nodes.sort(key=lambda entry: 0 if entry["node"]["kind"] == "aiProduct" else 1 if entry["node"].get("productCategory") == "ai_product" else 2)
+    catalog = {"schema": "https://opendataproducts.org/odpc-v1.1/schema/odpc.yaml", "version": "1.1", "kind": "Catalog", "catalog": {"metadata": {"id": design["portfolio_id"], "name": _language(design["title"]), "description": _language("Catalog derived from a Kentaro DesignPortfolio"), "status": "draft"}, "nodes": catalog_nodes}}
     odpc_path = root / "odpc.yaml"; _write(odpc_path, catalog); artifacts.append(odpc_path)
     nodes = []
-    for item in objectives: nodes.extend(({"id": item["id"], "type": "BusinessObjective", "$ref": f"odpc.yaml#/catalog/businessObjectives/{item['id']}"}, {"id": f"kpi-{item['id']}", "type": "KPI", "$ref": f"odpc.yaml#/catalog/businessObjectives/{item['id']}/kpis/0"}))
-    for item in use_cases: nodes.append({"id": item["id"], "type": "UseCase", "$ref": f"odpc.yaml#/catalog/useCases/{item['id']}"})
-    for item in ai_products: nodes.append({"id": item["id"], "type": "Agent", "$ref": f"ai-products/{item['id']}.json"})
+    for item in objectives: nodes.append({"id": item["id"], "type": "BusinessObjective", "$ref": "odpc.yaml"})
+    for item in use_cases: nodes.append({"id": item["id"], "type": "UseCase", "$ref": "odpc.yaml"})
+    for item in ai_products:
+        if item["id"] in ai_profiles: nodes.append({"id": item["id"], "type": "AIProduct", "$ref": f"ai-products/{item['id']}.odpc.yaml"})
     for item in products:
         nodes.extend(({"id": item["id"], "type": "DataProduct", "$ref": f"data-products/{item['id']}.odps.yaml"}, {"id": f"kpi-{item['id']}", "type": "KPI", "$ref": f"#product-kpi:{item['id']}"}))
     edges = []
     mapping = {"use-case-supports-objective": "supports", "use-case-requires-data-product": "uses", "ai-product-consumes-data-product": "uses", "use-case-delivered-by-ai-product": "dependsOn", "product-depends-on-product": "dependsOn", "data-product-reused-by-use-case": "uses"}
+    node_ids = {node["id"] for node in nodes}
     for edge in design["relationships"]:
-        if edge["kind"] in mapping: edges.append({"from": edge["from_id"], "to": edge["to_id"], "type": mapping[edge["kind"]], "confidence": _confidence(edge), "x-kentaro-relationship-id": edge["id"]})
-    for item in objectives: edges.append({"from": f"kpi-{item['id']}", "to": item["id"], "type": "measures", "confidence": "low", "x-kentaro-derived-from": "business_kpi"})
-    for item in products: edges.append({"from": item["id"], "to": f"kpi-{item['id']}", "type": "tracks", "confidence": "low", "x-kentaro-derived-from": "product_kpi"})
+        if edge["kind"] in mapping and edge["from_id"] in node_ids and edge["to_id"] in node_ids: edges.append({"from": edge["from_id"], "to": edge["to_id"], "type": mapping[edge["kind"]], "confidence": _confidence(edge), "x-kentaro-relationship-id": edge["id"]})
     graph = {"schema": "https://opendataproducts.org/odpg-v1.0/schema/odpg.yaml", "version": "1.0", "kind": "Graph", "graph": {"metadata": {"id": f"graph-{design['portfolio_id']}", "name": _language(design["title"]), "description": _language("Draft ODPG graph derived from the DesignPortfolio"), "status": "draft"}, "nodes": nodes, "edges": edges}}
     odpg_path = root / "odpg.yaml"; _write(odpg_path, graph); artifacts.append(odpg_path)
     validations = [{**validate_odps(path), "path": path.relative_to(root).as_posix()} for path in artifacts]
+    if ai_profiles:
+        from open_data_products import validate_ai_product_bundle
+        bundle = validate_ai_product_bundle(next(iter(ai_profiles.values())), catalog, graph)
+        validations.append({"spec": "ODPC AIProduct bundle", "path": "ai-products", "valid": bundle.valid, "errors": bundle.errors, "sdk_version": "0.5.0"})
     if not all(item.get("valid") for item in validations): raise ValueError("Generated ODPS family specification failed SDK validation")
     return {"artifacts": artifacts, "validations": validations, "completion": completion}

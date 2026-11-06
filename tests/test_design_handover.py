@@ -7,7 +7,7 @@ import zipfile
 
 from kentaro.cli import main
 from kentaro.design.handover import decision_context, export_handover, generate_handover, handover_status, inspect_handover, prepare_handover_review, validate_handover
-from kentaro.design.portfolio import add_object, add_relationship, create_design_portfolio, make_claim, save_portfolio
+from kentaro.design.portfolio import add_object, add_relationship, create_design_portfolio, load_portfolio, make_claim, save_portfolio, set_ai_product_odpc
 from kentaro.design.specifications import structural_completion
 from kentaro.scenarios.udemy_masterclass import starting_portfolio
 
@@ -33,9 +33,19 @@ class DesignHandoverTests(unittest.TestCase):
             "lifecycle_status": claim("discovery"),
         })
         portfolio = add_relationship(portfolio, "delivered-by-ai", "use-case", "ai-review", "use-case-delivered-by-ai-product")
-        return add_relationship(portfolio, "ai-uses-data", "ai-review", "data-product", "ai-product-consumes-data-product")
+        portfolio = add_relationship(portfolio, "ai-uses-data", "ai-review", "data-product", "ai-product-consumes-data-product")
+        confirmed = lambda value: make_claim(value, "user_confirmed", "workshop", "v1", "odpc-input", asserted_at="2026-10-25T00:00:00+00:00")
+        odpc = {
+            "product_id": confirmed("review-assistant"), "product_version": confirmed("1.0.0"), "product_type": confirmed("rag"),
+            "owner": {"team": confirmed("Service team")}, "autonomy_level": confirmed("assistive"),
+            "human_oversight_required": confirmed(True), "human_oversight_requirements": confirmed(["A reviewer decides every outcome."]),
+            "consequential_action_approval_required": confirmed(False), "consequential_action_approval_requirements": confirmed(["The product takes no consequential action."]),
+            "risk_classification": confirmed("limited"), "known_limitations": confirmed(["May not retrieve every relevant record."]),
+            "evaluation": {"groundedness": {"id": confirmed("groundedness"), "name": confirmed("Grounded response rate"), "measurement_method": confirmed("Monthly sample review"), "target_value": confirmed(95), "unit": confirmed("percent"), "status": confirmed("planned")}},
+        }
+        return set_ai_product_odpc(portfolio, "ai-review", odpc)
 
-    def test_banking_handover_preserves_claim_state_and_marks_contracts_unsupported(self):
+    def test_banking_handover_preserves_claim_state_and_marks_missing_odpc_inputs_without_blocking_review(self):
         portfolio = starting_portfolio()
         with TemporaryDirectory() as directory:
             package = Path(directory) / "handover"
@@ -47,9 +57,11 @@ class DesignHandoverTests(unittest.TestCase):
             context = json.loads((package / "decision-context.yaml").read_text(encoding="utf-8"))
             self.assertEqual(context["model"], "DecisionContext")
             self.assertEqual(context["business_context"]["use_cases"][0]["owner"]["status"], "assumed")
-            self.assertTrue((package / "specifications" / "ai-products" / "ai-risk-assistant.json").is_file())
+            self.assertFalse((package / "specifications" / "ai-products" / "ai-risk-assistant.json").exists())
+            status = json.loads((package / "governance" / "ai-product-specification-status.json").read_text(encoding="utf-8"))
+            self.assertEqual(status["products"][0]["status"], "awaiting_odpc_input")
             self.assertFalse((package / "specifications" / "data-products").exists())
-            self.assertEqual({item["status"] for item in generated["manifest"]["specification_status"]}, {"unsupported"})
+            self.assertEqual({item["status"] for item in generated["manifest"]["specification_status"]}, {"awaiting_odpc_input"})
             self.assertEqual(inspect_handover(package)["decision_context"]["ai_product_count"], 1)
 
     def test_generic_government_handover_is_not_a_course_specific_export_and_detects_staleness(self):
@@ -114,8 +126,29 @@ class DesignHandoverTests(unittest.TestCase):
             with zipfile.ZipFile(package) as archive:
                 graph = json.loads(archive.read("specifications/odpg.yaml"))
             nodes = {node["id"]: node for node in graph["graph"]["nodes"]}
-            self.assertEqual(nodes["ai-review"], {"id": "ai-review", "type": "Agent", "$ref": "ai-products/ai-review.json"})
+            self.assertEqual(nodes["ai-review"], {"id": "ai-review", "type": "AIProduct", "$ref": "ai-products/ai-review.odpc.yaml"})
+            self.assertIn("specifications/ai-products/ai-review.odpc.yaml", archive.namelist())
             self.assertTrue(all(edge["from"] in nodes and edge["to"] in nodes for edge in graph["graph"]["edges"]))
+
+    def test_cli_records_sourced_odpc_input_and_refreshes_the_engagement_state(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            previous = Path.cwd()
+            os.chdir(root)
+            try:
+                input_path = root / ".kentaro/workspace/design/portfolio.json"
+                save_portfolio(self._complete_portfolio_with_ai_product(), input_path)
+                self.assertEqual(main([
+                    "design", "set-ai-product-odpc", "--input", str(input_path), "--object-id", "ai-review",
+                    "--input-json", json.dumps({"product_id": "review-assistant-v2", "product_version": "2.0.0", "product_type": "rag"}),
+                    "--status", "user_confirmed", "--source-id", "workshop", "--source-revision", "v2", "--derivation-input-hash", "odpc-v2",
+                ]), 0)
+                ai_product = next(item for item in load_portfolio(input_path)["objects"] if item["id"] == "ai-review")
+                self.assertEqual(ai_product["claims"]["odpc"]["product_version"]["value"], "2.0.0")
+                state = json.loads((input_path.parent / "engagement-state.json").read_text(encoding="utf-8"))
+                self.assertEqual(state["structural_completion"]["odpc_ai_product_coverage"][0]["coverage"], "awaiting_odpc_input")
+            finally:
+                os.chdir(previous)
 
     def test_cli_prepares_review_then_generates_confirmed_workspace_zip(self):
         with TemporaryDirectory() as directory:

@@ -65,7 +65,7 @@ class MasterclassTests(unittest.TestCase):
         fixture = Path(__file__).parents[1] / "kentaro/scenarios/udemy_masterclass/customer-profile.odps.yaml"
         result = validate_odps(fixture)
         self.assertTrue(result["valid"])
-        self.assertEqual(result["sdk_version"], "0.4.0")
+        self.assertEqual(result["sdk_version"], "0.5.0")
         repair = Path(__file__).parents[1] / "kentaro/scenarios/udemy_masterclass/customer-profile-repair.odps.yaml"
         self.assertFalse(validate_odps(repair)["valid"])
 
