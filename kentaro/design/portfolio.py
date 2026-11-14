@@ -7,12 +7,13 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 MODEL_NAME = "DesignPortfolio"
 CLAIM_STATUSES = {"case_fact", "user_confirmed", "proposed", "assumed", "unknown"}
 ASSESSMENT_STAGES = {"discovery", "design", "implementation", "operation"}
 KINDS = {"objective", "use_case", "ai_product", "data_product"}
 DECISION_STATUSES = {"pending", "recorded", "superseded", "requires_reconsideration"}
+ASSUMPTION_STATES = {"introduced", "strengthened", "challenged", "revised", "unsupported", "contradicted", "reconfirmed", "verification_unavailable"}
 RELATIONSHIPS = {
     "use-case-supports-objective": ("use_case", "objective"),
     "use-case-delivered-by-ai-product": ("use_case", "ai_product"),
@@ -27,7 +28,16 @@ CLAIM_FIELDS = {"value", "status", "source_id", "source_revision", "asserted_at"
 
 def content_hash(value: object) -> str:
     """Return a stable digest of the complete structured design input."""
-    payload = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    # Preserve hash compatibility for a v3 portfolio that is only being read:
+    # migration supplies the empty extension, but it must not make previously
+    # generated local handovers stale. Material assumption records do affect the
+    # hash and therefore invalidate derived outputs as intended.
+    canonical = value
+    if isinstance(value, dict) and value.get("model") == MODEL_NAME and value.get("schema_version") == SCHEMA_VERSION and not value.get("assumptions"):
+        canonical = deepcopy(value)
+        canonical["schema_version"] = 3
+        canonical.pop("assumptions", None)
+    payload = json.dumps(canonical, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -92,7 +102,7 @@ def migrate_portfolio(portfolio: object) -> dict:
         migrated["model"] = MODEL_NAME
         if "case_id" in migrated:
             migrated["scenario_id"] = migrated.pop("case_id")
-    elif migrated.get("schema_version") == 2 and migrated.get("model") == MODEL_NAME:
+    elif migrated.get("schema_version") in {2, 3} and migrated.get("model") == MODEL_NAME:
         # v0.2 portfolios predate the explicit decision register.  Upgrade only
         # the local envelope; the original claims and relationships are intact.
         migrated["schema_version"] = SCHEMA_VERSION
@@ -101,6 +111,7 @@ def migrate_portfolio(portfolio: object) -> dict:
     migrated.setdefault("assessment_stage", "discovery")
     migrated.setdefault("design_alternatives", [])
     migrated.setdefault("decisions", [])
+    migrated.setdefault("assumptions", [])
     return migrated
 
 
@@ -116,6 +127,7 @@ def create_design_portfolio(title: str, portfolio_id: str, *, revision: str = "d
         "assessment_stage": "discovery",
         "design_alternatives": [],
         "decisions": [],
+        "assumptions": [],
         "claims": {},
         "objects": [],
         "relationships": [],
@@ -128,11 +140,11 @@ def validate_portfolio(portfolio: object) -> dict:
     except ValueError as error:
         return {"valid": False, "findings": [_finding("invalid_portfolio", str(error))]}
     findings: list[dict] = []
-    for field in ("schema_version", "model", "portfolio_id", "title", "revision", "assessment_stage", "design_alternatives", "decisions", "claims", "objects", "relationships"):
+    for field in ("schema_version", "model", "portfolio_id", "title", "revision", "assessment_stage", "design_alternatives", "decisions", "assumptions", "claims", "objects", "relationships"):
         if field not in design:
             findings.append(_finding("missing_field", f"DesignPortfolio requires {field}"))
     if design.get("schema_version") != SCHEMA_VERSION or design.get("model") != MODEL_NAME:
-        findings.append(_finding("unsupported_schema", "DesignPortfolio schema_version must be 3"))
+        findings.append(_finding("unsupported_schema", "DesignPortfolio schema_version must be 4"))
     if not all(isinstance(design.get(field), str) and design[field] for field in ("portfolio_id", "title", "revision")):
         findings.append(_finding("invalid_identity", "portfolio_id, title, and revision must be nonempty strings"))
     if design.get("assessment_stage") not in ASSESSMENT_STAGES:
@@ -141,6 +153,8 @@ def validate_portfolio(portfolio: object) -> dict:
         findings.append(_finding("invalid_design_alternatives", "design_alternatives must be a list"))
     if not isinstance(design.get("decisions"), list):
         findings.append(_finding("invalid_decisions", "decisions must be a list"))
+    if not isinstance(design.get("assumptions"), list):
+        findings.append(_finding("invalid_assumptions", "assumptions must be a list"))
     if not isinstance(design.get("claims"), dict) or (design["claims"] and not _claims_are_canonical(design["claims"])):
         findings.append(_finding("invalid_claims", "Portfolio claims must contain only canonical Claim values"))
     by_id: dict[str, str] = {}
@@ -226,10 +240,47 @@ def validate_portfolio(portfolio: object) -> dict:
                 findings.append(_finding("invalid_decision_alternatives", "Decision alternatives must be nonempty strings", decision["id"]))
             if not isinstance(evidence, list) or not all(isinstance(value, str) and value for value in evidence):
                 findings.append(_finding("invalid_decision_evidence", "Decision evidence_references must be nonempty strings", decision["id"]))
+            assumption_ids = decision.get("assumption_ids", [])
+            if not isinstance(assumption_ids, list) or not all(isinstance(value, str) and value for value in assumption_ids):
+                findings.append(_finding("invalid_decision_assumptions", "Decision assumption_ids must be nonempty strings", decision["id"]))
+            snapshots = decision.get("assumption_snapshots", [])
+            if not isinstance(snapshots, list) or not all(isinstance(value, dict) and isinstance(value.get("assumption_id"), str) and isinstance(value.get("assessment_id"), str) and isinstance(value.get("assessment_state"), str) for value in snapshots):
+                findings.append(_finding("invalid_decision_assumption_snapshots", "Decision assumption snapshots must preserve the assumption assessment at decision time", decision["id"]))
+            resolutions = decision.get("resolves_assessment_ids", [])
+            if not isinstance(resolutions, list) or not all(isinstance(value, str) and value for value in resolutions):
+                findings.append(_finding("invalid_decision_resolutions", "Decision resolves_assessment_ids must be nonempty strings", decision["id"]))
             supersedes = decision.get("supersedes")
             if supersedes is not None and (not isinstance(supersedes, str) or supersedes not in known_decisions):
                 findings.append(_finding("invalid_decision_supersedes", "Decision supersedes must reference an earlier decision", decision["id"]))
             known_decisions.add(decision["id"])
+    if isinstance(design.get("assumptions"), list):
+        assumption_ids = set()
+        object_ids = set(by_id)
+        decision_ids = {item.get("id") for item in design.get("decisions", []) if isinstance(item, dict)}
+        for assumption in design["assumptions"]:
+            required = ("id", "statement", "scope", "claim_references", "evidence_references", "related_object_ids", "related_decision_ids", "created_at", "latest_assessed_at", "assessment_state", "assessments")
+            if not isinstance(assumption, dict) or not all(isinstance(assumption.get(field), str) and assumption[field] for field in ("id", "statement", "scope", "created_at", "latest_assessed_at", "assessment_state")):
+                findings.append(_finding("invalid_assumption", "Every assumption needs id, statement, scope, timestamps, and assessment state"))
+                continue
+            if assumption["id"] in assumption_ids:
+                findings.append(_finding("duplicate_assumption", "Assumption IDs must be unique", assumption["id"]))
+            assumption_ids.add(assumption["id"])
+            if assumption["assessment_state"] not in ASSUMPTION_STATES:
+                findings.append(_finding("invalid_assumption_state", "Assumption assessment state is unsupported", assumption["id"]))
+            for field in ("claim_references", "evidence_references", "related_object_ids", "related_decision_ids", "assessments"):
+                if not isinstance(assumption.get(field), list):
+                    findings.append(_finding("invalid_assumption_links", f"Assumption {field} must be a list", assumption["id"]))
+            if isinstance(assumption.get("related_object_ids"), list) and not all(isinstance(value, str) and value in object_ids for value in assumption["related_object_ids"]):
+                findings.append(_finding("invalid_assumption_object_links", "Assumption related_object_ids must reference known objects", assumption["id"]))
+            if isinstance(assumption.get("related_decision_ids"), list) and not all(isinstance(value, str) and value in decision_ids for value in assumption["related_decision_ids"]):
+                findings.append(_finding("invalid_assumption_decision_links", "Assumption related_decision_ids must reference known decisions", assumption["id"]))
+            for assessment in assumption.get("assessments", []):
+                if not isinstance(assessment, dict) or not all(isinstance(assessment.get(field), str) and assessment[field] for field in ("id", "state", "assessed_at")) or assessment.get("state") not in ASSUMPTION_STATES:
+                    findings.append(_finding("invalid_assumption_assessment", "Assumption assessments need id, supported state, and timestamp", assumption["id"]))
+        known_assumptions = assumption_ids
+        for decision in design.get("decisions", []):
+            if isinstance(decision, dict) and any(value not in known_assumptions for value in decision.get("assumption_ids", [])):
+                findings.append(_finding("invalid_decision_assumption_reference", "Decision assumption_ids must reference known assumptions", decision.get("id")))
     return {"valid": not findings, "findings": findings, "content_hash": content_hash(design), "portfolio": design}
 
 
@@ -278,6 +329,8 @@ def record_decision(
     related_object_ids: list[str] | None = None,
     alternatives: list[str] | None = None,
     evidence_references: list[str] | None = None,
+    assumption_ids: list[str] | None = None,
+    resolves_assessment_ids: list[str] | None = None,
     supersedes: str | None = None,
     decided_at: str | None = None,
 ) -> dict:
@@ -285,6 +338,16 @@ def record_decision(
     if status not in {"pending", "recorded", "requires_reconsideration"}:
         raise ValueError("New decisions must be pending, recorded, or require reconsideration")
     updated = migrate_portfolio(portfolio)
+    assumptions = {item["id"]: item for item in updated["assumptions"]}
+    requested_assumptions = list(assumption_ids or [])
+    missing_assumptions = [item for item in requested_assumptions if item not in assumptions]
+    if missing_assumptions:
+        raise ValueError("Unknown assumption(s): " + ", ".join(missing_assumptions))
+    snapshots = []
+    for assumption_id in requested_assumptions:
+        assumption = assumptions[assumption_id]
+        latest = assumption["assessments"][-1]
+        snapshots.append({"assumption_id": assumption_id, "assessment_id": latest["id"], "assessment_state": latest["state"], "statement": assumption["statement"], "evidence_references": list(assumption["evidence_references"])})
     decision = {
         "id": decision_id,
         "subject": subject,
@@ -294,6 +357,9 @@ def record_decision(
         "resolution": resolution,
         "rationale": rationale,
         "evidence_references": list(evidence_references or []),
+        "assumption_ids": requested_assumptions,
+        "assumption_snapshots": snapshots,
+        "resolves_assessment_ids": list(resolves_assessment_ids or []),
         "actor": actor,
         "decided_at": decided_at or datetime.now(timezone.utc).isoformat(),
         "portfolio_revision": updated["revision"],
@@ -302,6 +368,39 @@ def record_decision(
     if supersedes:
         decision["supersedes"] = supersedes
     updated["decisions"].append(decision)
+    return updated
+
+
+def record_assumption_change(
+    portfolio: dict, assumption_id: str, *, statement: str, scope: str, state: str,
+    claim_references: list[str] | None = None, evidence_references: list[str] | None = None,
+    related_object_ids: list[str] | None = None, related_decision_ids: list[str] | None = None,
+    source_revision: str | None = None, assessment_id: str | None = None, assessed_at: str | None = None,
+) -> dict:
+    """Append an assessment of a material assumption without rewriting prior reasoning."""
+    if state not in ASSUMPTION_STATES:
+        raise ValueError("Unsupported assumption assessment state")
+    if not assumption_id.strip() or not statement.strip() or not scope.strip():
+        raise ValueError("Assumption id, statement, and scope are required")
+    updated = migrate_portfolio(portfolio)
+    existing = next((item for item in updated["assumptions"] if item["id"] == assumption_id), None)
+    now = assessed_at or datetime.now(timezone.utc).isoformat()
+    event_id = assessment_id or f"{assumption_id}:assessment:{len(existing['assessments']) + 1 if existing else 1}"
+    event = {"id": event_id, "state": state, "statement": statement, "scope": scope, "claim_references": list(claim_references or []), "evidence_references": list(evidence_references or []), "source_revision": source_revision, "assessed_at": now}
+    if existing is None:
+        updated["assumptions"].append({"id": assumption_id, "statement": statement, "scope": scope, "claim_references": list(claim_references or []), "evidence_references": list(evidence_references or []), "related_object_ids": list(related_object_ids or []), "related_decision_ids": list(related_decision_ids or []), "created_at": now, "latest_assessed_at": now, "assessment_state": state, "assessments": [event]})
+        return updated
+    if any(item["id"] == event_id for item in existing["assessments"]):
+        return updated
+    existing["statement"] = statement
+    existing["scope"] = scope
+    existing["claim_references"] = list(claim_references or existing["claim_references"])
+    existing["evidence_references"] = list(evidence_references or existing["evidence_references"])
+    existing["related_object_ids"] = list(related_object_ids or existing["related_object_ids"])
+    existing["related_decision_ids"] = list(related_decision_ids or existing["related_decision_ids"])
+    existing["latest_assessed_at"] = now
+    existing["assessment_state"] = state
+    existing["assessments"].append(event)
     return updated
 
 

@@ -83,6 +83,39 @@ They may also create a local, versioned delivery package that explains how work
 could proceed. It remains a plan. Kentaro must not execute the plan or create
 external business objects.
 
+## First practical Maysano interaction — planned v0.3 Step 1
+
+The first outbound Kentaro-to-Maysano capability is intentionally narrower than
+a company-graph mutation. Kentaro will submit a proposed, versioned
+`KentaroInitiativePackage` for Maysano evaluation. The package contains the
+initiative's DesignPortfolio-derived objectives, use cases, data products, and
+proposed ODPG relationships, together with ODPS/ODPC artefacts where available,
+provenance, validation results, and integrity hashes.
+
+The submission is a multipart request with a small JSON metadata envelope and
+the ZIP. Maysano validates transport and package integrity, records receipt,
+and decides whether to inspect, enrich, deduplicate, reject, route, approve, or
+create separately governed company-graph work. A `202 Accepted` response means
+only that Maysano received the proposal for evaluation; it is not an approval
+or graph-write result.
+
+Kentaro does not retrieve G0, submit a graph diff, infer Maysano authority, or
+claim a company-graph change in this step. The package graph is a proposed
+initiative graph, not an assertion about Maysano's existing graph.
+
+When Maysano decides to materialise the initiative in its company graph,
+Kentaro performs a follow-up read of the authorised Maysano projection. It
+verifies the canonical object references and graph revision returned in the
+Maysano submission result against the submission receipt. Matching names are
+not sufficient proof: the confirmation must be attributable to the submitted
+package.
+
+The proposed transport, validation, response, and status contract is documented
+in [Maysano Initiative Submission API contract](maysano-initiative-submission-api-contract.md).
+Implement this interface only after the Maysano maintainer ratifies its
+authentication, routing, idempotency, upload-limit, package-profile, and
+status-resource details.
+
 ## Interfaces
 
 ### CLI, required for v0.1

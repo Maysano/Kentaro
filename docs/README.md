@@ -37,3 +37,5 @@ Product home: [maysano.com/kentaro](https://maysano.com/kentaro).
 - [Changelog](changelog.md): concise record of delivered lifecycle changes.
 - [End-to-end business-design validation](end-to-end-business-design-validation.md): the reusable
   synthetic Business Owner prompt-and-graph contract.
+- [Business-design journey evaluation](business-design-journeys.md): reusable agent-trace
+  acceptance checks for ordinary Business Owner prompts.

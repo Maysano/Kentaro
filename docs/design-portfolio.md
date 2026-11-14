@@ -33,7 +33,13 @@ a linked, explicit human decision records the reconsideration.
 
 ## Human decision register and lifecycle state
 
-`DesignPortfolio` schema v3 adds an append-only local `decisions` register. A decision is a
+`DesignPortfolio` schema v4 adds an append-only local `decisions` register and a minimal
+`assumptions` lifecycle record. An assumption has a stable ID, scoped statement, claim and
+evidence references, linked design objects and decisions, plus an append-only sequence of
+assessments (`introduced`, `strengthened`, `challenged`, `revised`, `contradicted`, and source
+availability states). A revised assumption never overwrites the earlier assessment used by a
+decision. A decision records the supporting assumption IDs and snapshots their then-current
+assessment. A decision is a
 business-design event, not an approval or authenticated identity record. It stores its supplied
 actor label, subject, scope, alternatives, resolution, rationale, evidence references, related
 objects, timestamp, source portfolio revision, and optional superseded decision ID. A later
@@ -46,6 +52,36 @@ kentaro design record-decision --input .kentaro/workspace/design/risk.json \
   --resolution "Start with rules-first" --rationale "Evidence coverage is incomplete" \
   --evidence-reference "maysano:/products/risk-context" --actor "Business Owner"
 ```
+
+Record changed operational evidence and generate a decision-owner view without modifying the
+portfolio during analysis:
+
+```shell
+kentaro design record-assumption-change --input .kentaro/workspace/design/risk.json \
+  --id manual-gathering-delay --statement "Approval and regulatory review cause most delays." \
+  --scope "Customer risk assessment" --state challenged \
+  --evidence-reference "operational-analysis:2026-11" --related-object-id ai-risk-assistant
+kentaro design assess-impact --input .kentaro/workspace/design/risk.json
+kentaro design impact-report --input .kentaro/workspace/design/risk.json \
+  --output-dir .kentaro/workspace/design/risk/impact
+```
+
+For example, an original decision to select AI-assisted risk assessment may have been reasonable
+when manual information gathering was thought to cause most delay. If new operational analysis
+instead identifies approval and regulatory review as the main delay, Kentaro marks the linked
+value proposition and decision for reassessment. The original alternatives, resolution, and
+rationale remain in the local history. The affected canvas details show the changed assumption,
+reason, linked decision, and suggested human action. Linked data products can remain `unaffected`
+when no evaluated dependency connects them to the change. This means no impact was identified for
+this change; it is not authorization to proceed.
+
+Only explicit assumption references and typed relationships propagate impact. Confirmed
+relationship provenance yields a confirmed impact; proposed or unverified links are shown as
+potential review candidates and are not recursively propagated. A material unresolved change
+creates a readiness finding and gates final handover, while a suggested review package remains
+available. A subsequent explicit human decision can resolve the requirement only by referencing
+the changed assessment (`--resolves-assessment-id`); it does not retroactively edit the original
+decision or grant external approval.
 
 The regenerated `engagement-state.json` presents seven flexible lifecycle stages: establish
 context, define business intent, assess existing capabilities, develop alternatives, formalize the

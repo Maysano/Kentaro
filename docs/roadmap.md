@@ -4,8 +4,9 @@
 
 Kentaro is an open-source, MIT-licensed local harness for governed work against a Maysano
 company graph. It gives code assistants and other agentic tools a bounded way to retrieve
-business context, form structured drafts, evaluate proposed work, and, from v0.3, submit
-approved graph changes.
+business context, form structured drafts, evaluate proposed work, and, in v0.3 Step 1,
+submit proposed initiative packages for Maysano evaluation before any later approved graph
+changes.
 
 Maysano remains the company system of record. It owns graph persistence, tenant isolation,
 authority, revocation, audit, and the canonical state of objectives, use cases, data products,
@@ -23,7 +24,7 @@ and their relationships.
 | --- | --- | --- |
 | v0.1 | Read, understand, validate, and explain company context | Read-only Maysano access. Local drafts and evidence only. |
 | v0.2 | Provide reusable local business-driven Data & AI product design | Deterministic DesignPortfolio, reusable skills, scenario packages, visual canvas, and reports. No Maysano write, approval, or production-readiness claim. |
-| v0.3 | Create and revise governed company-graph objects | Maysano-approved, scoped graph changes through a narrow mutation contract. |
+| v0.3 | Start governed Maysano interaction | Step 1 submits a proposed initiative package for Maysano evaluation; later v0.3 work may use narrow Maysano-approved graph changes. |
 | v0.4 | Expose governed graph work to external agent clients | MCP tools over the same policy and mutation contracts. |
 | v0.5 | Improve repeatable delivery and portfolio workflows | Reusable workflow packages, saved views, richer evidence, and measured learning. |
 
@@ -88,12 +89,68 @@ run without a network, credentials, Ollama, hosted model, or paid API.
 
 ## v0.3 — governed company-graph changes
 
-### Goal
+### Step 1 — Maysano initiative intake
 
-v0.3 will allow Kentaro to perform bounded changes to the Maysano company graph. This is a
-material change from v0.1's read-only and local-artifact boundary. Maysano remains the system
-of record and the enforcement point for tenant isolation, authority, graph persistence,
-revocation, and audit. Kentaro does not receive general graph-write authority.
+The first practical Kentaro-to-Maysano interaction is a proposed initiative
+submission, not a graph read or graph mutation. Kentaro packages the local
+DesignPortfolio as a versioned `KentaroInitiativePackage` and submits it with a
+small, integrity-checked metadata envelope. Maysano receives the package for
+evaluation and decides what happens next.
+
+This step deliberately does not require Kentaro to retrieve an existing company
+graph. The package's ODPG file describes the initiative's proposed semantic
+graph only; it is not a claim about Maysano's current graph and is not a graph
+change instruction. Maysano may inspect, enrich, deduplicate, reject, route,
+approve, or turn the proposal into separately governed company-graph work.
+
+The proposed external contract is
+[Maysano Initiative Submission API contract](maysano-initiative-submission-api-contract.md).
+Its first endpoint is a multipart `POST /api/external/v1/initiative-submissions`
+with:
+
+- JSON metadata identifying the proposed initiative, package profile, source
+  DesignPortfolio revision, and ZIP digest;
+- one `KentaroInitiativePackage` ZIP containing the authoritative proposal;
+- an idempotency key; and
+- a `202 Accepted` receipt meaning only that Maysano received the package for
+  evaluation.
+
+Maysano derives tenant, workspace, caller identity, receipt time, and final
+disposition from its own authentication, authorisation, and workflow. Kentaro
+does not submit Maysano authority, approval, G0, graph revision, graph actions,
+or a claimed mutation outcome.
+
+**Step 1 acceptance criteria:**
+
+1. The `KentaroInitiativePackage` v1 file layout and manifest are ratified and
+   deterministically generated from a reviewed, structurally complete
+   DesignPortfolio.
+2. Kentaro validates ZIP integrity and cross-file ODPS, ODPC, and ODPG
+   references before submission.
+3. Maysano validates request metadata against the internal package manifest,
+   records the receipt in its audit trail, and exposes the submission status.
+4. A successful submission never by itself asserts that Maysano approved an
+   initiative or created company-graph records.
+5. Contract tests cover retry/idempotency, digest mismatch, malformed ZIP,
+   profile mismatch, unauthorised caller, and safe error responses.
+6. When Maysano materialises initiative content into its company graph, Kentaro
+   re-reads the authorised Maysano projection and verifies the canonical object
+   references and graph revision reported against the submission receipt.
+
+**Maysano dependencies before implementation:** the external endpoint and
+authentication contract, tenant/workspace routing semantics, idempotency and
+retry rules, upload and extraction limits, `KentaroInitiativePackage` v1
+profile, and status-resource retention, terminal-state, canonical-reference,
+and graph-revision model.
+
+### Step 2 — governed company-graph changes
+
+Only after Maysano decides to create governed work and supplies a verified
+mutation contract may Kentaro perform bounded changes to the Maysano company
+graph. This is a material change from v0.1's read-only and local-artifact
+boundary. Maysano remains the system of record and the enforcement point for
+tenant isolation, authority, graph persistence, revocation, and audit. Kentaro
+does not receive general graph-write authority.
 
 Each graph mutation must be attributable to a Maysano-authorised task and must use a narrowly
 scoped, short-lived capability. Before Maysano applies a mutation, it must validate the active
@@ -365,8 +422,10 @@ receipts, concurrency, and correction flows.
 
 ## Near-term implementation decision
 
-Run two bounded tracks. First, ratify the v0.3 Maysano graph-mutation contract before any
-production graph-write implementation; that contract determines the adapter, capability model,
-receipt design, and evaluation suite. Second, begin v0.2 with the synthetic course case and its
-local teaching contract. The v0.2 companion must remain useful and fully testable without the
-v0.3 API, graph-write rights, or a production Maysano environment.
+Run three bounded tracks. First, ratify the v0.3 Step 1 initiative-submission contract and
+its package profile, then implement the narrow package-intake client and contract tests. Second,
+ratify the later v0.3 Maysano graph-mutation contract before any production graph-write
+implementation; that contract determines the adapter, capability model, receipt design, and
+evaluation suite. Third, continue v0.2 with the synthetic course case and its local teaching
+contract. The v0.2 companion must remain useful and fully testable without the v0.3 API,
+graph-write rights, or a production Maysano environment.

@@ -7,10 +7,13 @@ from .portfolio import (
     load_portfolio,
     migrate_portfolio,
     record_decision,
+    record_assumption_change,
     save_portfolio,
     set_claim,
     validate_portfolio,
 )
+from .journey import evaluate_journey, validate_case
+from .impact import assess_impact, impact_report
 
 __all__ = [
     "add_object",
@@ -19,7 +22,12 @@ __all__ = [
     "load_portfolio",
     "migrate_portfolio",
     "record_decision",
+    "record_assumption_change",
     "save_portfolio",
     "set_claim",
     "validate_portfolio",
+    "evaluate_journey",
+    "validate_case",
+    "assess_impact",
+    "impact_report",
 ]

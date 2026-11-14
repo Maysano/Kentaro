@@ -57,6 +57,13 @@ class DesignPortfolioTests(unittest.TestCase):
                 self.assertIn("Needs information", canvas)
                 self.assertIn("Supporting specifications, including generated ODPS-family artifacts", canvas)
                 self.assertIn("Conventional automation", canvas)
+                self.assertIn(".focus-map .app{display:block;max-width:none;min-height:100vh}", canvas)
+                self.assertIn(".focus-map .product-bar,.focus-map .page-head{display:none}", canvas)
+                self.assertIn(".focus-map .map-columns{grid-template-columns:repeat(4,minmax(0,1fr));gap:28px}", canvas)
+                self.assertIn("Delivery package", canvas)
+                self.assertIn("ODPS 4.0 draft", canvas)
+                self.assertIn("Kentaro AI-product definition", canvas)
+                self.assertIn("function prettySource", canvas)
                 self.assertNotIn("Customer Risk", canvas)
                 outputs = root / ".kentaro/workspace/design/outputs"
                 self._run(["design", "report", "--input", str(portfolio), "--output-dir", str(outputs)])

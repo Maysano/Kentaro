@@ -7,6 +7,16 @@
   catalog nodes, product reference, and ODPG `AIProduct` node.
 - Added non-blocking, sourced ODPC input coverage and targeted user questions.
 
+## Unreleased
+
+- Added local, deterministic business-assumption change records and decision impact assessment.
+- Decisions can snapshot their supporting assumption assessments and explicitly resolve a later
+  reassessment without changing historical resolutions.
+- Added `kentaro design record-assumption-change`, `assess-impact`, and `impact-report`.
+- Material unresolved assumption changes now surface in readiness, reports, canvas inspection,
+  decision context, and final-handover gating. These remain advisory local workflow controls and
+  never create Maysano mutations or approvals.
+
 ## 0.2.10 — Stateful business-design lifecycle (4 November 2026)
 
 - Added explicit `auto`, `local`, and `graph_connected` design-session context modes.

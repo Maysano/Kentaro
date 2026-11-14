@@ -30,6 +30,7 @@ from kentaro.design.portfolio import (
     load_portfolio,
     make_claim,
     migrate_portfolio,
+    record_assumption_change,
     record_decision,
     save_portfolio,
     set_ai_product_odpc,
@@ -43,6 +44,8 @@ from kentaro.design.handover import export_handover, handover_status, inspect_ha
 from kentaro.design.engagement import load_engagement_state, state_path, update_engagement_state
 from kentaro.design.proposal import propose_design
 from kentaro.design.company_context import acknowledge_graph_reconsideration, initialize_company_context, revalidate_company_context, unavailable_context
+from kentaro.design.journey import evaluate_journey
+from kentaro.design.impact import assess_impact, impact_report
 from kentaro.scenarios.udemy_masterclass import odps_fixture, starting_portfolio
 from kentaro.workspace import (
     DEFAULT_MAYSANO_BASE_URL,
@@ -218,7 +221,28 @@ def _parser() -> argparse.ArgumentParser:
     design_record_decision.add_argument("--related-object-id", action="append", default=[])
     design_record_decision.add_argument("--alternative", action="append", default=[])
     design_record_decision.add_argument("--evidence-reference", action="append", default=[])
+    design_record_decision.add_argument("--assumption-id", action="append", default=[], help="Recorded assumption supporting this decision")
+    design_record_decision.add_argument("--resolves-assessment-id", action="append", default=[], help="Changed assumption assessment resolved by this subsequent decision")
     design_record_decision.add_argument("--supersedes")
+    design_assumption_change = design_commands.add_parser("record-assumption-change", help="Append a locally recorded business-assumption assessment")
+    design_assumption_change.add_argument("--input", required=True)
+    design_assumption_change.add_argument("--id", required=True, help="Stable assumption identifier")
+    design_assumption_change.add_argument("--statement", required=True)
+    design_assumption_change.add_argument("--scope", required=True)
+    design_assumption_change.add_argument("--state", required=True, choices=("introduced", "strengthened", "challenged", "revised", "unsupported", "contradicted", "reconfirmed", "verification_unavailable"))
+    design_assumption_change.add_argument("--claim-reference", action="append", default=[])
+    design_assumption_change.add_argument("--evidence-reference", action="append", default=[])
+    design_assumption_change.add_argument("--related-object-id", action="append", default=[])
+    design_assumption_change.add_argument("--related-decision-id", action="append", default=[])
+    design_assumption_change.add_argument("--source-revision")
+    design_assumption_change.add_argument("--assessment-id", help="Stable event identifier for idempotent imports")
+    design_assess_impact = design_commands.add_parser("assess-impact", help="Run deterministic read-only impact analysis for a recorded assumption change")
+    design_assess_impact.add_argument("--input", required=True)
+    design_assess_impact.add_argument("--assessment-id", help="Recorded assumption assessment; defaults to latest material change")
+    design_impact_report = design_commands.add_parser("impact-report", help="Write a decision-owner impact report and structured JSON")
+    design_impact_report.add_argument("--input", required=True)
+    design_impact_report.add_argument("--output-dir", required=True)
+    design_impact_report.add_argument("--assessment-id", help="Recorded assumption assessment; defaults to latest material change")
     design_refresh_context = design_commands.add_parser("refresh-context", help="Revalidate safe company-graph provenance for an existing local design")
     design_refresh_context.add_argument("--input", required=True)
     design_refresh_context.add_argument("--company-source", choices=("auto", "local", "maysano"), default="auto")
@@ -246,6 +270,9 @@ def _parser() -> argparse.ArgumentParser:
     engagement_refresh.add_argument("--input", required=True)
     engagement_evaluate = engagement_commands.add_parser("evaluate", help="Alias for refresh; evaluate the complete portfolio after a user interaction")
     engagement_evaluate.add_argument("--input", required=True)
+    design_journey = design_commands.add_parser("evaluate-journey", help="Validate a recorded Business Owner journey against a reusable local case")
+    design_journey.add_argument("--case", required=True, help="Synthetic Business Owner journey case JSON")
+    design_journey.add_argument("--trace", required=True, help="Recorded agent journey trace JSON with portfolio snapshots")
     design_migrate = design_commands.add_parser("migrate", help="Migrate a v0.2 LearningPortfolio to DesignPortfolio")
     design_migrate.add_argument("--input", required=True)
     design_migrate.add_argument("--output", required=True)
@@ -369,13 +396,15 @@ def _write_design_reports(portfolio: dict, destination: Path, *, assessment_stag
     readiness_path = destination / "readiness-report.json"
     summary_path = destination / "executive-summary.md"
     decisions_path = destination / "unresolved-decisions.md"
+    impact_path = destination / "impact-assessment.json"
     canvas_path = destination / "canvas.html"
     readiness_path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     summary_path.write_text(executive_summary(portfolio, result), encoding="utf-8")
     decisions_path.write_text(unresolved_decisions(portfolio, result), encoding="utf-8")
+    impact_path.write_text(json.dumps(impact_report(portfolio), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     canvas_path.write_text(render_canvas(portfolio, assessment_stage=assessment_stage), encoding="utf-8")
     manifest_path = destination / "manifest.json"
-    outputs = {"readiness": readiness_path, "summary": summary_path, "unresolved_decisions": decisions_path, "canvas": canvas_path}
+    outputs = {"readiness": readiness_path, "summary": summary_path, "unresolved_decisions": decisions_path, "impact_assessment": impact_path, "canvas": canvas_path}
     manifest_path.write_text(json.dumps(manifest(portfolio, outputs), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return result
 
@@ -557,12 +586,32 @@ def main(argv=None):
                     resolution=args.resolution, rationale=args.rationale, actor=args.actor,
                     status=args.status, related_object_ids=args.related_object_id,
                     alternatives=args.alternative, evidence_references=args.evidence_reference,
+                    assumption_ids=args.assumption_id, resolves_assessment_ids=args.resolves_assessment_id,
                     supersedes=args.supersedes,
                 )
                 acknowledge_graph_reconsideration(updated, updated["decisions"][-1])
                 saved = save_portfolio(updated, _workspace_output(args.input, workspace))
                 state, _ = _refresh_engagement(saved)
                 print(json.dumps({"portfolio": str(saved), "engagement_state": str(state), "decision_id": args.id, "actor_label": args.actor}, sort_keys=True))
+            elif args.design_command == "record-assumption-change":
+                portfolio = load_portfolio(_workspace_output(args.input, workspace))
+                updated = record_assumption_change(portfolio, args.id, statement=args.statement, scope=args.scope, state=args.state, claim_references=args.claim_reference, evidence_references=args.evidence_reference, related_object_ids=args.related_object_id, related_decision_ids=args.related_decision_id, source_revision=args.source_revision, assessment_id=args.assessment_id)
+                saved = save_portfolio(updated, _workspace_output(args.input, workspace))
+                state, _ = _refresh_engagement(saved)
+                recorded = next(item for item in updated["assumptions"] if item["id"] == args.id)["assessments"][-1]
+                print(json.dumps({"portfolio": str(saved), "engagement_state": str(state), "assumption_id": args.id, "assessment_id": recorded["id"], "local_only": True}, sort_keys=True))
+            elif args.design_command == "assess-impact":
+                result = assess_impact(load_portfolio(_workspace_output(args.input, workspace)), args.assessment_id)
+                print(json.dumps(result, sort_keys=True))
+                if not result["valid"]: return 2
+            elif args.design_command == "impact-report":
+                portfolio = load_portfolio(_workspace_output(args.input, workspace))
+                destination = _workspace_output(args.output_dir, workspace); destination.mkdir(parents=True, exist_ok=True)
+                result = impact_report(portfolio, args.assessment_id)
+                (destination / "impact-assessment.json").write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+                (destination / "decision-owner-impact.md").write_text(result["markdown"], encoding="utf-8")
+                print(json.dumps({"output_dir": str(destination), "assessment_id": result.get("assessment", {}).get("assessment_id") if result.get("assessment") else None, "summary": result.get("summary")}, sort_keys=True))
+                if not result["valid"]: return 2
             elif args.design_command == "refresh-context":
                 portfolio_path = _workspace_output(args.input, workspace)
                 portfolio = load_portfolio(portfolio_path)
@@ -595,6 +644,13 @@ def main(argv=None):
                     state = state_path(portfolio_path)
                     result = load_engagement_state(state) if state.exists() else _refresh_engagement(portfolio_path)[1]
                 print(json.dumps({"engagement_state": str(state), "state": result}, sort_keys=True))
+            elif args.design_command == "evaluate-journey":
+                case = json.loads(_workspace_output(args.case, workspace).read_text(encoding="utf-8"))
+                trace = json.loads(_workspace_output(args.trace, workspace).read_text(encoding="utf-8"))
+                result = evaluate_journey(case, trace)
+                print(json.dumps(result, sort_keys=True))
+                if not result["valid"]:
+                    return 2
             elif args.design_command == "migrate":
                 output = _workspace_output(args.output, workspace); saved = save_portfolio(migrate_portfolio(json.loads(_workspace_output(args.input, workspace).read_text(encoding="utf-8"))), output); state, _ = _refresh_engagement(saved); print(json.dumps({"portfolio": str(saved), "engagement_state": str(state)}, sort_keys=True))
             elif args.design_command == "validate-odps":

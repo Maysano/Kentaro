@@ -78,6 +78,7 @@ def decision_context(portfolio: dict, *, assessment_stage: str | None = None) ->
         },
         "business_context": {
             "portfolio_claims": design["claims"],
+            "assumptions": design.get("assumptions", []),
             "objectives": [_object_summary(item) for item in objects if item["kind"] == "objective"],
             "use_cases": [_object_summary(item) for item in objects if item["kind"] == "use_case"],
         },
@@ -228,6 +229,9 @@ def generate_handover(
     completion = structural_completion(design)
     if package_status == "reviewed" and not completion["structurally_complete"]:
         raise ValueError("Final handover requires structural completion: resolve required KPI, relationship, and data-product findings before confirmation.")
+    unresolved_assumption_reviews = [item for item in assessment["findings"] if item.get("field") == "assumption_reassessment_required"]
+    if package_status == "reviewed" and unresolved_assumption_reviews:
+        raise ValueError("Final handover is gated by unresolved material assumption changes. Record a subsequent explicit human decision with the changed assessment reference before confirmation.")
     temporary = Path(tempfile.mkdtemp(prefix="kentaro-handover-", dir=target.parent))
     try:
         _write(temporary / "decision-context.yaml", context)

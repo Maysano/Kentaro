@@ -10,6 +10,7 @@ from hashlib import sha256
 from pathlib import Path
 
 from .portfolio import ASSESSMENT_STAGES, content_hash, is_claim, iter_claims, validate_portfolio
+from .impact import assess_impact, MATERIAL_CHANGE_STATES
 
 
 CONFIRMED_CLAIM_STATUSES = {"case_fact", "user_confirmed"}
@@ -181,6 +182,34 @@ def readiness(portfolio: dict, *, assessment_stage: str | None = None) -> dict:
             "affected_object_id": dependency["from_id"],
             "related_relationship_id": dependency["relationship_id"],
         })
+    # Changed assumptions create targeted business review requirements.  This
+    # does not change structural specification validation or decision history.
+    for assumption in check["portfolio"].get("assumptions", []):
+        for event in assumption["assessments"]:
+            if event["state"] not in MATERIAL_CHANGE_STATES:
+                continue
+            impact = assess_impact(check["portfolio"], event["id"])
+            for decision in impact.get("decisions", []):
+                if not decision["requires_reassessment"]:
+                    continue
+                key = f"assumption|{event['id']}|{decision['decision_id']}|{stage}"
+                findings.append({
+                    "finding_id": f"finding:{sha256(key.encode('utf-8')).hexdigest()[:16]}",
+                    "affected_object_id": decision["related_object_ids"][0] if decision["related_object_ids"] else "portfolio",
+                    "category": "decision_dependency",
+                    "severity": "high",
+                    "assessment_stage": stage,
+                    "field": "assumption_reassessment_required",
+                    "explanation": f"Assumption {assumption['id']} is {event['state']}; decision {decision['decision_id']} retains its historical resolution but requires human reassessment.",
+                    "required_resolution": decision["recommended_action"],
+                    "source_claim_ids": list(assumption.get("claim_references", [])),
+                    "dependency_references": list(event.get("evidence_references") or assumption.get("evidence_references", [])),
+                    "assumption_id": assumption["id"],
+                    "assessment_id": event["id"],
+                    "decision_id": decision["decision_id"],
+                    "owner": decision["owner"] or "unknown",
+                    "impact_classification": "blocked_pending_review" if stage in {"implementation", "operation"} else "review_required",
+                })
     findings.sort(key=lambda item: (FINDING_CATEGORY_ORDER[item["category"]], SEVERITY_ORDER[item["severity"]], item["affected_object_id"], item["field"]))
     category_counts = dict(Counter(item["category"] for item in findings))
     severity_counts = dict(Counter(item["severity"] for item in findings))
@@ -278,6 +307,13 @@ def executive_summary(portfolio: dict, assessment: dict) -> str:
     design = check["portfolio"]
     names = {kind: [str(item["claims"]["name"]["value"]) for item in design["objects"] if item["kind"] == kind] for kind in ("objective", "use_case", "ai_product", "data_product")}
     list_or_none = lambda values: ", ".join(values) if values else "None yet"
+    impact_findings = [item for item in assessment["findings"] if item.get("field") == "assumption_reassessment_required"]
+    impact_section = "## Assumption impact\n\nNo material assumption change currently requires a recorded decision reassessment."
+    if impact_findings:
+        impact_section = "## Assumption impact\n\n" + "\n".join(
+            f"- {item['assumption_id']} is changed; decision `{item['decision_id']}` needs reassessment by {item.get('owner', 'unknown')}. Technical structural validity is unchanged by this finding."
+            for item in impact_findings
+        )
     return "\n".join((
         f"# {design['title']} — Executive Summary", "",
         "**Status:** local design artefact. It is not a business approval, system of record, or production-readiness assessment.", "",
@@ -286,6 +322,7 @@ def executive_summary(portfolio: dict, assessment: dict) -> str:
         f"## AI products\n\n{list_or_none(names['ai_product'])}", "",
         f"## Data products\n\n{list_or_none(names['data_product'])}", "",
         f"## Readiness\n\nAssessment stage: {assessment['assessment_stage']}. {assessment['summary']['by_category']['implementation_blocker']} implementation blocker(s), {assessment['summary']['by_category']['decision_dependency']} decision dependency/dependencies, and {assessment['summary']['by_category']['design_gap']} design gap(s). Validation and this report do not establish production readiness.", "",
+        impact_section, "",
         "## Next actions\n\n1. Confirm accountable owners, measurable outcomes, and supporting evidence.\n2. Review dependencies, access needs, and delivery constraints.\n3. Resolve or explicitly retain open decisions, then regenerate local outputs.", "",
         f"Input hash: `{assessment['portfolio_hash']}`.", "",
     ))
