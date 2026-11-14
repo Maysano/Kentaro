@@ -10,6 +10,7 @@ from pathlib import Path
 from kentaro.api.demo import DemoClient, read_packaged_demo
 from kentaro.api.live import LiveClient, load_live_environment
 from kentaro.config.loader import load_config
+from kentaro.context import assess_context, write_context_assessment
 from kentaro.data_products import create_local_draft, validate_local_artifact
 from kentaro.dashboard.render import render_dashboard
 from kentaro.governance import (
@@ -89,6 +90,13 @@ def _parser() -> argparse.ArgumentParser:
     codex_setup = setup_commands.add_parser("codex", help="Install Kentaro instructions and skills for Codex in this workspace")
     codex_setup.add_argument("--replace", action="store_true", help="Explicitly replace modified Kentaro-managed instructions or skills, preserving other user files")
     commands.add_parser("doctor", help="Check Kentaro, Codex workspace setup, skills, and ODPS validation readiness")
+
+    context = commands.add_parser("context", help="Assess one local text source for AI-context readiness indicators")
+    context_commands = context.add_subparsers(dest="context_command", required=True)
+    context_assess = context_commands.add_parser("assess", help="Write an evidence-linked local context assessment")
+    context_assess.add_argument("--input", required=True, help="UTF-8 Markdown or text source; it is read locally and is not sent to a service")
+    context_assess.add_argument("--intended-use", required=True, help="What an AI tool is expected to do with this material")
+    context_assess.add_argument("--output-dir", help="Optional new or empty directory under .kentaro/workspace/")
 
     for artifact_type, command_name, plural_name in (
         ("data-product", "data-product", "data-product"),
@@ -388,6 +396,19 @@ def _workspace_output(path: str | Path, workspace: Path) -> Path:
     return target
 
 
+def _context_output_dir(args: argparse.Namespace, workspace: Path) -> Path:
+    """Choose a non-overwriting local output directory for a context assessment."""
+    if args.output_dir:
+        return _workspace_output(args.output_dir, workspace)
+    while True:
+        candidate = timestamped_output(workspace, "context-assessment", ".json").with_suffix("")
+        try:
+            candidate.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            continue
+        return candidate
+
+
 def _write_design_reports(portfolio: dict, destination: Path, *, assessment_stage: str | None = None) -> dict:
     result = readiness(portfolio, assessment_stage=assessment_stage)
     if not result["valid"]:
@@ -482,6 +503,20 @@ def main(argv=None):
             print(json.dumps(result, sort_keys=True))
             if not result["valid"]:
                 return 2
+        elif args.command == "context":
+            if args.context_command == "assess":
+                assessment = assess_context(args.input, intended_use=args.intended_use)
+                destination = _context_output_dir(args, workspace)
+                outputs = write_context_assessment(assessment, destination)
+                summary = assessment["assessment"]
+                print(json.dumps({
+                    **outputs,
+                    "source_sha256": assessment["source"]["sha256"],
+                    "current_indicator_level": summary["current_level"]["level"],
+                    "recommended_target_level": summary["recommended_target_level"]["level"],
+                    "indicative_workload": summary["indicative_workload"]["class"],
+                    "local_only": True,
+                }, sort_keys=True))
         elif args.command == "masterclass":
             if args.masterclass_command == "init":
                 output = _workspace_output(args.output, workspace) if args.output else workspace / "masterclass" / "customer-risk-intelligence" / "portfolio.json"

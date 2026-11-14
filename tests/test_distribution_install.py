@@ -69,7 +69,7 @@ class DistributionInstallTests(unittest.TestCase):
             self.assertIn("Open the visual canvas in Codex beside the conversation", installed_instructions)
             self.assertIn("refresh or reopen that same canvas in Codex", installed_instructions)
             installed_skills = sorted((working_directory / ".agents" / "skills").glob("*/SKILL.md"))
-            self.assertEqual(len(installed_skills), 13)
+            self.assertEqual(len(installed_skills), 14)
             self.assertTrue(all(skill.read_text(encoding="utf-8").startswith("---") for skill in installed_skills))
             self.assertIn('"model": "DesignPortfolio"', design.stdout)
             rendered_canvas = working_directory / ".kentaro/workspace/design/clean-canvas.html"

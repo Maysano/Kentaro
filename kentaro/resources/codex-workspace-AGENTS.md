@@ -56,7 +56,7 @@ this same conversation, do not reduce a successful result to a version number an
 request to restart. Use the `learner_handoff` returned by `kentaro doctor` to close
 with these short headings in plain language:
 
-- **Setup** — confirm that `AGENTS.md` and all 13 Kentaro skills are ready.
+- **Setup** — confirm that `AGENTS.md` and all 14 Kentaro skills are ready.
 - **Health check** — confirm the local workspace, ODPS validation, and local visual
   canvas are ready. Do not imply that this is business approval or production
   readiness.

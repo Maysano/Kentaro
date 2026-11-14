@@ -26,12 +26,12 @@ behalf:
 > Set up Kentaro in this project. Run `kentaro setup codex`, then `kentaro doctor`,
 > on my behalf. Do not clone the Kentaro repository. When the checks pass, give me a
 > short plain-language summary with **Setup**, **Health check**, and **What happens
-> next**. Confirm the 13 skills, local workspace, ODPS validation, and visual canvas;
+> next**. Confirm the 14 skills, local workspace, ODPS validation, and visual canvas;
 > then tell me to start a fresh Codex conversation here before we begin the
 > DesignPortfolio, with one ready-to-send business prompt.
 
 Codex runs the installed `kentaro setup codex` and `kentaro doctor` commands in that
-folder. It installs the 13 skills in `.agents/skills/`, adds Kentaro's bounded
+folder. It installs the 14 skills in `.agents/skills/`, adds Kentaro's bounded
 `AGENTS.md` guidance, and creates the local workspace while preserving existing user
 instructions and changed skills.
 
@@ -70,6 +70,21 @@ kentaro dashboard
 
 `kentaro dashboard` always creates a fresh timestamped HTML file in
 `.kentaro/workspace/`; it never overwrites an existing dashboard.
+
+## Assess local context material for AI use
+
+Kentaro can inspect one local Markdown or text policy, handbook, or instruction
+source for evidence-linked context-readiness indicators. This local assessment
+does not call a model or a service, and it does not claim approval, compliance,
+or production readiness.
+
+```shell
+kentaro context assess --input ./staff-policy.md --intended-use "Answer staff questions from this policy"
+```
+
+It creates a fresh local JSON evidence record and Markdown report under
+`.kentaro/workspace/`. See [local context assessment](docs/context-assessment.md)
+for scope, limits, and the seven dimensions assessed.
 
 ## Design a local business and product portfolio
 

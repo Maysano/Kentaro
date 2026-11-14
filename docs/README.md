@@ -20,6 +20,7 @@ Product home: [maysano.com/kentaro](https://maysano.com/kentaro).
 
 - [Delivery plan](delivery-plan.md): v0.1 scope, exit condition, and later work.
 - [Local DesignPortfolio](design-portfolio.md): reusable v0.2 local business design capability.
+- [Local context assessment](context-assessment.md): evidence-linked preparation of one local text source for AI use.
 - [Masterclass Companion](masterclass-companion.md): the first packaged course scenario.
 - [Architecture](architecture.md): boundaries between Kentaro and Maysano.
 - [Governance and delivery object model](governance-and-delivery-object-model.md):

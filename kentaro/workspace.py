@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 DEFAULT_MAYSANO_BASE_URL = "https://app.maysano.com/api/external/v1"
 SKILL_NAMES = (
     "kentaro-ai-product-design",
+    "kentaro-context-assessment",
     "kentaro-create-data-product",
     "kentaro-data-product-design",
     "kentaro-list-data-products",

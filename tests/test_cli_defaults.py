@@ -143,7 +143,7 @@ class DefaultCliTests(unittest.TestCase):
                 self.assertIn('"fresh_codex_conversation_required": true', stdout.getvalue())
                 self.assertIn("start a new Codex conversation", stdout.getvalue())
                 skills = Path(directory) / ".agents" / "skills"
-                self.assertEqual(len(list(skills.glob("*/SKILL.md"))), 13)
+                self.assertEqual(len(list(skills.glob("*/SKILL.md"))), 14)
                 repeated = io.StringIO()
                 with redirect_stdout(repeated):
                     self.assertEqual(main(["setup", "codex"]), 0)
@@ -234,13 +234,13 @@ class DefaultCliTests(unittest.TestCase):
                 result = json.loads(healthy.getvalue())
                 self.assertTrue(result["valid"])
                 skills = next(check for check in result["checks"] if check["name"] == "kentaro_skills")
-                self.assertEqual(skills["detail"], "13/13 installed")
+                self.assertEqual(skills["detail"], "14/14 installed")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "design_portfolio")["status"], "not_started")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "codex_conversation_reload")["status"], "action_required")
                 self.assertEqual(next(check for check in result["checks"] if check["name"] == "visual_canvas")["status"], "ok")
                 handoff = result["learner_handoff"]
                 self.assertEqual(handoff["headline"], "Kentaro is ready for business design.")
-                self.assertIn("13/13 Kentaro skills", handoff["setup"][1])
+                self.assertIn("14/14 Kentaro skills", handoff["setup"][1])
                 self.assertIn("ODPS validation", handoff["health_check"][1])
                 self.assertIn("Start a new Codex conversation", handoff["next_step"])
                 self.assertEqual(handoff["first_business_prompt"], "Our bank's customer risk assessments take too long. Help me improve this process.")

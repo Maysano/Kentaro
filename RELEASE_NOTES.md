@@ -1,5 +1,26 @@
 # Kentaro release notes
 
+## 0.2.13 — Local context assessment (14 November 2026)
+
+Kentaro 0.2.13 adds `kentaro context assess`, a local, deterministic first
+assessment of one UTF-8 Markdown or text source prepared for AI use. It writes a
+non-overwriting JSON evidence record and Markdown report in the ignored Kentaro
+workspace. The report links every observed indicator to source lines and assesses
+readability, terminology, practical interpretation, decision rules and
+exceptions, human and AI boundaries, ownership and freshness, and verification
+cases.
+
+The stated intended use determines a recommended target level: question answering
+defaults to level 2, content generation or review to level 3, and an agent,
+workflow, action, or decision use to level 4. A new Codex skill guides the same
+workflow after `kentaro setup codex`.
+
+The capability is deliberately an indicator scan, not a semantic audit. It does
+not contact a model, Maysano, or another service; interpret PDFs, images,
+diagrams, or tables; establish content accuracy, approval, legal compliance, or
+production readiness; or create Maysano records. Assessment findings remain
+local evidence for later human review and optional DesignPortfolio work.
+
 ## 0.2.12 — Business decision impact assessment (14 November 2026)
 
 Kentaro 0.2.12 adds local, deterministic assessment of material business-assumption
