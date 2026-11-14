@@ -1,5 +1,27 @@
 # Kentaro release notes
 
+## 0.2.12 — Business decision impact assessment (14 November 2026)
+
+Kentaro 0.2.12 adds local, deterministic assessment of material business-assumption
+changes. A DesignPortfolio can now preserve a scoped assumption and its append-only
+assessment history alongside the existing canonical claims and human decisions. A
+decision snapshots its supporting assumptions at the time it was recorded; later
+evidence does not rewrite the original rationale or resolution.
+
+`kentaro design record-assumption-change`, `assess-impact`, and `impact-report`
+provide a decision owner with the changed evidence, affected commitments, confirmed
+and potential relationship-based impacts, unaffected branches, and the recommended
+next human action. Structural specification validity remains independent from
+business-readiness reassessment. An unresolved material change becomes a local
+readiness finding and final-handover gate; a subsequent explicit human decision can
+resolve it by referencing the changed assessment.
+
+The release also adds reusable Business Owner journey evaluation, refreshed canvas
+inspection details, and documentation for the deliberately unimplemented v0.3
+Maysano initiative-submission contract. Kentaro remains local-first and read-only:
+no Maysano mutation, approval, authenticated identity, or production-readiness
+assertion is created by these features.
+
 ## 0.2.11 — ODPC v1.1 AI-product delivery (6 November 2026)
 
 Kentaro 0.2.11 pins `open-data-products==0.5.0` and replaces its private AI-product

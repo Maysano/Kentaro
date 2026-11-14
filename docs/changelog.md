@@ -7,7 +7,7 @@
   catalog nodes, product reference, and ODPG `AIProduct` node.
 - Added non-blocking, sourced ODPC input coverage and targeted user questions.
 
-## Unreleased
+## 0.2.12 — Business decision impact assessment (14 November 2026)
 
 - Added local, deterministic business-assumption change records and decision impact assessment.
 - Decisions can snapshot their supporting assumption assessments and explicitly resolve a later
